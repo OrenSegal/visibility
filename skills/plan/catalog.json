@@ -263,10 +263,11 @@
       "link": "dofollow (claimed)",
       "effort": "minutes",
       "steps": [
-        "claude: make sure the repo holds the MCP config, skills or rules at standard paths",
-        "human: paste the repo URL and click Scan repo"
+        "claude: make sure the repo holds skills/<name>/SKILL.md, mcp.json or rules at standard paths (Open Plugins / agent-plugins.org layout)",
+        "human: sign in at cursor.directory/plugins/new (GitHub or Google) in your own browser; in the Claude browser pane the session did not stick on 2026-11-08",
+        "human: paste the repo URL, click Scan repo, check what it found, submit"
       ],
-      "notes": "Community list, not Cursor's curated store. 2026-11 forum report (unverified): plugin publishing now centralised on cursor.directory 'Submit a Plugin', needs .cursor-plugin/plugin.json, review up to ~2 weeks. Re-check before use.",
+      "notes": "Community list, not Cursor's curated store. 2026-11 forum report (unverified): plugin publishing now centralised on cursor.directory 'Submit a Plugin', needs .cursor-plugin/plugin.json, review up to ~2 weeks. Re-check before use. 2026-11-08: submit page confirmed (auto-detect from a GitHub repo, follows the Open Plugins standard, sign-in required).",
       "source": "thread",
       "verified": "no"
     },
