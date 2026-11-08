@@ -726,10 +726,12 @@
       "link": "listing page with install counts",
       "effort": "minutes",
       "steps": [
-        "human: sign in with GitHub and submit the repo URL (optionally pay $4 for under-24h review)"
+        "human: sign in with GitHub at claudemarketplaces.com/submit",
+        "approve: pick the type (Skill, MCP server, or Marketplace for a repo with .claude-plugin/marketplace.json), paste the repo URL, Submit for free (or Priority review $4, under 24h)"
       ],
-      "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "source": "research + used 2026-11-07",
+      "verified": "yes",
+      "notes": "Status shows under Your submissions on the submit page. Independent directory, not affiliated with Anthropic."
     },
     {
       "id": "aitmpl",
