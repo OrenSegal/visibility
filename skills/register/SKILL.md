@@ -3,9 +3,12 @@ name: register
 description: Walk one platform from the visibility catalog end to end for this project - re-check the live submission page, build the artifacts it needs, run the publish step after an explicit yes, hand the account, payment, DNS and form steps to the user, then verify the listing and update the ledger.
 disable-model-invocation: true
 argument-hint: "<platform-id> [--dry-run]"
+metadata:
+  openclaw:
+    homepage: https://github.com/OrenSegal/visibility
 ---
 
-Get this project listed on one platform. The platform's row lives in `../plan/catalog.json` (resolve from this file's directory). If `.visibility/PLAN.md` is missing, run the scan from `../plan/SKILL.md` steps 1-2 first. If the row's `requires` are not all met, stop and say which asset is missing and how to build it.
+Get this project listed on one platform. The platform's row lives in `../plan/catalog.json` (resolve from this file's directory); if this skill was installed without its `plan` sibling, read https://raw.githubusercontent.com/OrenSegal/visibility/main/skills/plan/catalog.json instead. If `.visibility/PLAN.md` is missing, run the scan from `../plan/SKILL.md` steps 1-2 first. If the row's `requires` are not all met, stop and say which asset is missing and how to build it.
 
 ## Rules
 

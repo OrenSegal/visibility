@@ -3,6 +3,11 @@ name: plan
 description: Fingerprint one project (or a whole folder of repos) for listable assets - MCP server, Agent Skill, plugin, OpenAPI, CLI, browser extension - and rank the marketplaces and directories it can be listed on now, plus which single asset to build next to unlock the most listings.
 disable-model-invocation: true
 argument-hint: "[path ...] [--portfolio]"
+metadata:
+  openclaw:
+    homepage: https://github.com/OrenSegal/visibility
+    requires:
+      bins: [python3, git]
 ---
 
 Produce a visibility plan: where this project can get a dedicated page on a high-authority platform, what each listing needs, and the order to do them. Change nothing outside `.visibility/` in the project. Never create accounts, pay, submit forms or publish here; that is `register`, one platform at a time, with the user.
