@@ -57,7 +57,7 @@
       ],
       "source": "thread",
       "verified": "no",
-      "notes": "2026-11 recheck: URL publish at smithery.ai/new or `smithery mcp publish <url> -n @org/server`; stdio servers ship as an MCPB bundle; serve /.well-known/mcp/server-card.json if the scan can't reach tools; return 401 not 403 so OAuth discovery works; allowlist the SmitheryBot/1.0 user agent."
+      "notes": "smithery.ai (loaded 2026-11-08): 'Smithery's MCP Proxy and managed identity shut down on October 31'; treat it as a directory, not a gateway, and re-check what /future says replaces it. 2026-11 recheck: URL publish at smithery.ai/new or `smithery mcp publish <url> -n @org/server`; stdio servers ship as an MCPB bundle; serve /.well-known/mcp/server-card.json if the scan can't reach tools; return 401 not 403 so OAuth discovery works; allowlist the SmitheryBot/1.0 user agent."
     },
     {
       "id": "glama",
@@ -244,7 +244,7 @@
         "human: verify identity in OpenAI platform organization settings",
         "human: create the app, paste the MCP URL, scan tools, fill in the listing, attach test account and demo video, submit"
       ],
-      "notes": "The thread calls these 'ChatGPT plugins' at platform.openai.com/plugins; the 2023 plugin program was retired, this is the Apps SDK/MCP flow. Re-check the live page and name before walking the user through it.",
+      "notes": "The thread calls these 'ChatGPT plugins' at platform.openai.com/plugins; the 2023 plugin program was retired, this is the Apps SDK/MCP flow. Re-check the live page and name before walking the user through it. Codex plugins share this directory (research 2026-11-08, unconfirmed by a second load): no lifecycle hooks, remote HTTPS MCP only, no API-key auth.",
       "source": "thread",
       "verified": "no"
     },
@@ -1125,7 +1125,7 @@
         "shopify-app",
         "test-account"
       ],
-      "cost": "registration fee (about $19, unconfirmed)",
+      "cost": "$19 one-time registration (shopify.dev revenue-share page, loaded 2026-11-08)",
       "review": "manual",
       "link": "App Store listing",
       "effort": "weeks",
@@ -1220,6 +1220,1105 @@
       "notes": "Only for a working, launch-ready app.",
       "source": "research 2026-11-07 (secondhand)",
       "verified": "no"
+    },
+    {
+      "id": "cursor-marketplace",
+      "name": "Cursor Marketplace (official)",
+      "category": "devtools",
+      "submit": "https://cursor.com/marketplace/publish",
+      "listing": "cursor.com/marketplace/<plugin> page with Add to Cursor",
+      "dr": null,
+      "requires": [
+        "cursor-plugin",
+        "github-public"
+      ],
+      "cost": "free",
+      "review": "manual, every update reviewed; no stated timeline",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": [
+        ".cursor-plugin/plugin.json",
+        ".cursor-plugin/marketplace.json for multi-plugin repos"
+      ],
+      "steps": [
+        "claude: write .cursor-plugin/plugin.json (only name required) and place rules/skills/agents/commands/MCP/hooks in default dirs",
+        "claude: test by copying to ~/.cursor/plugins/local/<plugin> and reloading Cursor",
+        "human: submit the public repo at cursor.com/marketplace/publish and accept the publisher terms"
+      ],
+      "notes": "Distinct from cursor.directory (community). Docs: all marketplace plugins must be open source. Publisher terms (search result) forbid charging users. A forum report says one submission waited 25+ days.",
+      "source": "https://cursor.com/docs/plugins (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "cline-mcp-marketplace",
+      "name": "Cline MCP Marketplace",
+      "category": "mcp",
+      "submit": "https://github.com/cline/mcp-marketplace/issues/new/choose",
+      "listing": "in-app one-click install entry in Cline's MCP Marketplace",
+      "dr": null,
+      "requires": [
+        "mcp-server",
+        "github-public"
+      ],
+      "cost": "free",
+      "review": "manual, aims for a couple of days; weighs adoption, maintainer credibility, maturity, security",
+      "link": "in-app only (no public web page confirmed)",
+      "effort": "minutes",
+      "artifacts": [
+        "400x400 PNG logo",
+        "llms-install.md (optional)"
+      ],
+      "steps": [
+        "claude: make README (and optional llms-install.md) enough for Cline to install the server unaided",
+        "claude: prepare a 400x400 PNG logo and a one-line reason it helps Cline users",
+        "approve: open the submission issue on cline/mcp-marketplace"
+      ],
+      "notes": "Low star counts are not an automatic reject. Extra scrutiny for finance/crypto tools.",
+      "source": "https://github.com/cline/mcp-marketplace (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "zed-extensions",
+      "name": "Zed Extensions",
+      "category": "devtools",
+      "submit": "https://github.com/zed-industries/extensions",
+      "listing": "zed.dev/extensions entry with in-editor install",
+      "dr": null,
+      "requires": [
+        "zed-extension",
+        "github-public"
+      ],
+      "cost": "free",
+      "review": "maintainer PR review against the publishing prerequisites",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": [
+        "extension.toml",
+        "LICENSE (allowed list)"
+      ],
+      "steps": [
+        "claude: write extension.toml with a kebab-case id (no 'zed'/'extension'; MCP ids prefixed mcp-server- or suffixed -mcp-server) and an allowed license",
+        "claude: for an MCP extension, download or detect the server instead of bundling it",
+        "human: install as dev extension in Zed and test at the submitted commit",
+        "approve: open the PR adding the extension submodule to zed-industries/extensions"
+      ],
+      "notes": "Docs say MCP-server extensions are being deprecated in favor of the MCP registry; publish there too. Good fit for language/theme/debugger extensions.",
+      "source": "https://zed.dev/docs/extensions/publishing/prerequisites (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "kiro-powers",
+      "name": "Kiro Powers directory",
+      "category": "mcp",
+      "submit": "https://kiro.dev/powers/submit/",
+      "listing": "kiro.dev/powers entry with Add to Kiro; Details links to the GitHub repo",
+      "dr": null,
+      "requires": [
+        "kiro-power",
+        "github-public",
+        "mcp-server|skill-md"
+      ],
+      "cost": "free",
+      "review": "manual (AWS quality review; one case study says ~2 weeks)",
+      "link": "Details link points to GitHub repo",
+      "effort": "hours",
+      "artifacts": [
+        "plugin.json",
+        "mcp.json",
+        "skills/"
+      ],
+      "steps": [
+        "claude: write plugin.json ($schema, name, version, description, author, keywords) plus mcp.json and/or skills/",
+        "approve: push to a public GitHub repo (installable via Import power from GitHub without review)",
+        "human: submit the repo link at kiro.dev/powers/submit and accept the Kiro Powers Publisher Terms"
+      ],
+      "notes": "Directory lists ~76 partner/community powers. Submission page addresses organizations; unclear if solo devs are accepted.",
+      "source": "https://kiro.dev/powers/ and https://kiro.dev/docs/powers/create/ (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "goose-extensions",
+      "name": "goose Extensions Library",
+      "category": "mcp",
+      "submit": "https://github.com/block/goose (PR to the docs servers.json)",
+      "listing": "goose-docs.ai/extensions grid entry + detail page",
+      "dr": null,
+      "requires": [
+        "mcp-server",
+        "github-public"
+      ],
+      "cost": "free",
+      "review": "maintainer PR review",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "claude: write the servers.json entry and a short doc page for the extension",
+        "approve: open a PR to block/goose adding it to the Extensions Library"
+      ],
+      "notes": "Process inferred from merged PR #7328, not a documented guide. Directory moved to goose-docs.ai.",
+      "source": "https://github.com/block/goose/pull/7328 (search only, not loaded 2026-11-08)",
+      "verified": "no"
+    },
+    {
+      "id": "power-platform-connector",
+      "name": "Microsoft Power Platform certified connector",
+      "category": "automation",
+      "submit": "https://learn.microsoft.com/en-us/connectors/custom-connectors/submit-certification",
+      "listing": "learn.microsoft.com/connectors/<name> page + certified connector pages on Power Automate/Power Apps/Copilot Studio",
+      "dr": null,
+      "requires": [
+        "power-connector",
+        "public-api"
+      ],
+      "cost": "free",
+      "review": "manual Microsoft certification",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": [
+        "apiDefinition.swagger.json",
+        "apiProperties.json",
+        "icon.png"
+      ],
+      "steps": [
+        "claude: build the custom connector (apiDefinition.swagger.json + apiProperties.json) from the OpenAPI file",
+        "human: test in a Power Platform environment",
+        "approve: independent publishers: PR to microsoft/PowerPlatformConnectors; verified publishers: submit via Partner Center"
+      ],
+      "notes": "Free for both verified (you own the API) and independent publishers. Auth must be OAuth2, API key, basic or anonymous. Also usable as tools in Copilot Studio; MCP servers have a separate certification. Lands as a Premium connector.",
+      "source": "https://learn.microsoft.com/en-us/connectors/custom-connectors/submit-certification (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "teams-store",
+      "name": "Microsoft Teams Store",
+      "category": "integration",
+      "submit": "https://partner.microsoft.com (Partner Center)",
+      "listing": "Teams Store entry, auto-listed on appsource.microsoft.com",
+      "dr": null,
+      "requires": [
+        "teams-app",
+        "test-account"
+      ],
+      "cost": "free",
+      "review": "manual validation; first report ~24 working hours, iterative",
+      "link": "AppSource listing page",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: create a Partner Center developer account and complete publisher verification",
+        "claude: validate the app package in the Teams Developer Portal and write test notes",
+        "human: submit through Partner Center and fix the validation report"
+      ],
+      "notes": "Apps can link to a transactable SaaS offer (see microsoft-marketplace). Channel-enabled apps need manifest 1.25+ since July 2026.",
+      "source": "https://learn.microsoft.com/en-us/microsoftteams/platform/concepts/deploy-and-publish/appsource/publish (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "google-workspace-marketplace",
+      "name": "Google Workspace Marketplace",
+      "category": "integration",
+      "submit": "https://console.cloud.google.com (Marketplace SDK)",
+      "listing": "workspace.google.com/marketplace/app/<app> listing",
+      "dr": null,
+      "requires": [
+        "workspace-addon",
+        "website"
+      ],
+      "cost": "free",
+      "review": "manual Marketplace review; OAuth verification may also be needed",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: enable the Marketplace SDK in a Cloud project and configure the app",
+        "human: complete OAuth consent/verification if sensitive scopes are used",
+        "human: create the store listing (logo, website) and submit as Public"
+      ],
+      "notes": "Public vs private cannot be switched after publishing. OAuth verification for restricted scopes can add weeks.",
+      "source": "https://developers.google.com/workspace/marketplace/how-to-publish (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "hubspot-marketplace",
+      "name": "HubSpot App Marketplace",
+      "category": "integration",
+      "submit": "https://developers.hubspot.com",
+      "listing": "ecosystem.hubspot.com/marketplace/apps/<app> listing",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account",
+        "demo-video"
+      ],
+      "cost": "free",
+      "review": "manual (HubSpot Ecosystem Quality team)",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: build a public OAuth app in a HubSpot developer account",
+        "human: fill the 7 listing tabs (icon 800x800, categories, demo video, screenshots, pricing, support, testing info)",
+        "human: Validate & submit as Super Admin"
+      ],
+      "notes": "Loaded page omits the App listing requirements page; HubSpot has historically required a minimum number of active installs before listing. Check before building.",
+      "source": "https://developers.hubspot.com/docs/apps/developer-platform/list-apps/listing-your-app/listing-your-app (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "atlassian-marketplace",
+      "name": "Atlassian Marketplace (free listing)",
+      "category": "integration",
+      "submit": "https://developer.atlassian.com/console",
+      "listing": "marketplace.atlassian.com/apps/<id> listing",
+      "dr": null,
+      "requires": [
+        "forge-app"
+      ],
+      "cost": "free",
+      "review": "manual, aims for ~1 week",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "claude: build the Forge app and implement personal-data report/erase flows",
+        "human: enable sharing and publish the developer space; add End User Terms and privacy/security tab",
+        "human: submit the listing and justify every scope and remote host"
+      ],
+      "notes": "Paid version: see atlassian-paid.",
+      "source": "https://developer.atlassian.com/platform/marketplace/listing-forge-apps/ (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "monday-marketplace",
+      "name": "monday.com apps marketplace",
+      "category": "integration",
+      "submit": "https://developer.monday.com (Developer Center > Submit app)",
+      "listing": "monday.com/marketplace listing",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account"
+      ],
+      "cost": "free",
+      "review": "manual 4-phase review; first response within 72 business hours",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "claude: build the app on the monday apps framework using the Vibe design system",
+        "human: publish from the Share tab and complete the Submit app form",
+        "human: resolve items on the review board until approved"
+      ],
+      "notes": "Apps built mainly with no-code tools or AI 'vibe code' are not eligible; clones get declined. Paid version: see monday-paid.",
+      "source": "https://developer.monday.com/apps/docs/submit-your-app (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "zoom-marketplace",
+      "name": "Zoom App Marketplace",
+      "category": "integration",
+      "submit": "https://marketplace.zoom.us/develop",
+      "listing": "marketplace.zoom.us/apps/<id> listing",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account"
+      ],
+      "cost": "free (no fee stated)",
+      "review": "manual: Marketplace Operations then Security review",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: create the app in the Zoom developer portal",
+        "claude: write Terms of Use, Privacy Policy, docs and support URL pages",
+        "human: submit for the two-phase review"
+      ],
+      "notes": "Unlisted/beta options exist if public review is too heavy.",
+      "source": "https://developers.zoom.us/docs/distribute/ (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "intercom-app-store",
+      "name": "Intercom App Store",
+      "category": "integration",
+      "submit": "https://developers.intercom.com (Developer Hub)",
+      "listing": "intercom.com/app-store listing with start guide",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account",
+        "demo-video"
+      ],
+      "cost": "free",
+      "review": "manual, up to 7 business days",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: create a public OAuth app in the Developer Hub",
+        "claude: write the Start Guide and listing copy (name must not contain 'Intercom')",
+        "human: record an end-to-end video (OAuth install, features, uninstall) and submit",
+        "human: after approval (public, unlisted) switch it to listed"
+      ],
+      "notes": "No install minimum on the loaded page.",
+      "source": "https://developers.intercom.com/docs/publish-to-the-app-store/review-publish-your-app (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "miro-marketplace",
+      "name": "Miro Marketplace",
+      "category": "integration",
+      "submit": "https://miro.com/partnerships/ (Partner Interest Form)",
+      "listing": "miro.com/marketplace/<app> listing",
+      "dr": null,
+      "requires": [
+        "public-api"
+      ],
+      "cost": "free (no fee stated)",
+      "review": "partner acceptance first, then app review",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: submit the Partner Interest Form",
+        "human: after acceptance, upload assets via the submission form (1-6 visuals, <450-char description, privacy policy)"
+      ],
+      "notes": "Gated by partner acceptance; no self-serve path.",
+      "source": "https://developers.miro.com/docs/marketplace-listing-guidelines (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "canva-apps",
+      "name": "Canva Apps Marketplace",
+      "category": "integration",
+      "submit": "https://www.canva.com/developers/",
+      "listing": "Canva Apps Marketplace listing",
+      "dr": null,
+      "requires": [
+        "canva-app"
+      ],
+      "cost": "free (no fee stated)",
+      "review": "manual, tracked in a Jira Service Desk ticket",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "approve: upload the bundle with the Canva CLI",
+        "human: fill App listing details (text, media, links) and testing credentials",
+        "human: agree to terms and submit on Release > App status"
+      ],
+      "notes": "",
+      "source": "https://www.canva.dev/docs/apps/submitting-apps/ (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "webflow-apps",
+      "name": "Webflow Apps Marketplace",
+      "category": "cms",
+      "submit": "https://developers.webflow.com/apps",
+      "listing": "webflow.com/apps/detail/<app> listing",
+      "dr": null,
+      "requires": [
+        "webflow-app"
+      ],
+      "cost": "free (no fee stated)",
+      "review": "manual, a few days",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "claude: build bundle.zip (<=5MB) and a separate ZIP of source maps + manifest + lockfile",
+        "human: enable 2FA, upload via Webflow CLI as Workspace admin",
+        "human: submit marketing assets and support info"
+      ],
+      "notes": "Designer Extensions must be reviewable from source.",
+      "source": "https://developers.webflow.com/apps/docs/publishing-your-app (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "framer-marketplace",
+      "name": "Framer Marketplace (plugins)",
+      "category": "cms",
+      "submit": "https://www.framer.com/marketplace/dashboard",
+      "listing": "framer.com/marketplace/plugins/<plugin> listing",
+      "dr": null,
+      "requires": [
+        "framer-plugin"
+      ],
+      "cost": "free (no fee stated)",
+      "review": "approval; no stated criteria or timeline",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "claude: run npm run pack to produce plugin.zip; test light/dark mode",
+        "human: New Plugin in the Marketplace dashboard, upload plugin.zip, fill the form"
+      ],
+      "notes": "Loaded page says nothing about paid plugins.",
+      "source": "https://www.framer.com/developers/publishing (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "ifttt",
+      "name": "IFTTT service",
+      "category": "automation",
+      "submit": "https://platform.ifttt.com",
+      "listing": "ifttt.com/<service> service page",
+      "dr": null,
+      "requires": [
+        "public-api"
+      ],
+      "cost": "free",
+      "review": "manual, up to a week",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: create the service on platform.ifttt.com and wire auth + endpoints",
+        "claude: build at least 12 Applets and a white vector logo on transparent background",
+        "human: Publish tab submit; then fill the pre-launch marketing form with a launch date"
+      ],
+      "notes": "Personal support emails fail review.",
+      "source": "https://ifttt.com/docs (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "activepieces",
+      "name": "Activepieces piece",
+      "category": "automation",
+      "submit": "https://github.com/activepieces/activepieces",
+      "listing": "activepieces.com/pieces/<piece> page + npm package",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "github-public"
+      ],
+      "cost": "free",
+      "review": "maintainer PR review",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "claude: build the piece in a fork with the Activepieces CLI and test it",
+        "approve: open a PR to activepieces/activepieces"
+      ],
+      "notes": "Merged pieces auto-publish to npm within minutes. Pieces are also exposed to MCP clients via Activepieces.",
+      "source": "https://www.activepieces.com/docs/build-pieces/sharing-pieces/contribute (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "salesforce-appexchange",
+      "name": "Salesforce AppExchange",
+      "category": "integration",
+      "submit": "https://partners.salesforce.com",
+      "listing": "appexchange.salesforce.com listing",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account"
+      ],
+      "cost": "free apps: no security review fee; paid: $999 initial review",
+      "review": "manual security review",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: join the Salesforce Partner Program and create a listing in Partner Console",
+        "human: pass the security review"
+      ],
+      "notes": "Fee page returned 403; figures from search snippets of the latest ISVforce guide. Possible annual listing fee unconfirmed.",
+      "source": "https://developer.salesforce.com/docs/atlas.en-us.packagingGuide.meta/packagingGuide/security_review_fees.htm (search only, not loaded 2026-11-08)",
+      "verified": "no"
+    },
+    {
+      "id": "deps-dev",
+      "name": "deps.dev (Open Source Insights)",
+      "category": "package",
+      "submit": "none (automatic once published to npm/PyPI/crates/Go/Maven/NuGet/RubyGems)",
+      "listing": "deps.dev/<system>/<package> page: dependency graph, advisories, licenses, dependents",
+      "dr": null,
+      "requires": [
+        "npm-package|pypi-package|rust-crate"
+      ],
+      "cost": "free",
+      "review": "none (automatic)",
+      "link": "unchecked",
+      "effort": "minutes",
+      "artifacts": null,
+      "steps": [
+        "claude: confirm the package is published and check its deps.dev page for advisories or license conflicts"
+      ],
+      "notes": "Google-run; nothing to submit. Fix what the page shows (vulns, license) since it is what reviewers see.",
+      "source": "https://docs.deps.dev/faq/ (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "jsr",
+      "name": "JSR (JavaScript Registry)",
+      "category": "package",
+      "submit": "https://jsr.io/new",
+      "listing": "jsr.io/@scope/pkg page with generated docs and a JSR score",
+      "dr": null,
+      "requires": [
+        "jsr-package"
+      ],
+      "cost": "free (none stated)",
+      "review": "none",
+      "link": "unchecked",
+      "effort": "minutes",
+      "artifacts": [
+        "jsr.json"
+      ],
+      "steps": [
+        "claude: add jsr.json (name, version, exports); ESM only; fix slow types",
+        "claude: run npx jsr publish --dry-run",
+        "human: create the scope and package at jsr.io/new",
+        "approve: npx jsr publish (or GitHub Actions OIDC for provenance)"
+      ],
+      "notes": "Complements npm for TS libraries; provenance only via GitHub Actions.",
+      "source": "https://jsr.io/docs/publishing-packages (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "context7",
+      "name": "Context7 library docs",
+      "category": "docs",
+      "submit": "https://context7.com/add-library",
+      "listing": "context7.com/<org>/<project> library page served to coding agents",
+      "dr": null,
+      "requires": [
+        "github-public"
+      ],
+      "cost": "free for public repos",
+      "review": "none (automatic parse)",
+      "link": "unchecked",
+      "effort": "minutes",
+      "artifacts": [
+        "context7.json (optional)"
+      ],
+      "steps": [
+        "claude: make sure docs are English .md/.mdx in the repo; optionally add context7.json to scope folders",
+        "human: paste the public repo URL at context7.com/add-library",
+        "human: optionally claim the library (verify ownership) for the admin panel and faster refresh"
+      ],
+      "notes": "Feeds Context7 MCP used inside Cursor/Claude Code etc. Optional GitHub Action refreshes on push.",
+      "source": "https://context7.com/docs/adding-libraries (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "public-apis",
+      "name": "public-apis list (GitHub)",
+      "category": "api",
+      "submit": "https://github.com/public-apis/public-apis",
+      "listing": "list entry in a very large GitHub list; separate MCP servers section",
+      "dr": null,
+      "requires": [
+        "public-api"
+      ],
+      "cost": "free",
+      "review": "maintainer PR review",
+      "link": "GitHub links are nofollow",
+      "effort": "minutes",
+      "artifacts": null,
+      "steps": [
+        "claude: write the one-line entry (Auth, HTTPS, CORS, Postman link, <100-char description) in alphabetical order",
+        "approve: open one PR titled 'Add <Name> API'"
+      ],
+      "notes": "API needs a free tier and proper docs; marketing attempts rejected.",
+      "source": "https://github.com/public-apis/public-apis/blob/master/CONTRIBUTING.md (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "rapidapi-paid",
+      "name": "RapidAPI Hub paid plans",
+      "category": "monetize",
+      "submit": "https://rapidapi.com (Studio > Monetize)",
+      "listing": "same Hub listing as rapidapi",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "openapi"
+      ],
+      "cost": "25% of payments",
+      "review": "none",
+      "link": "dofollow website field (claimed)",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: add paid plans in Studio > Monetize",
+        "human: link a PayPal account for payouts"
+      ],
+      "notes": "Builds on the free rapidapi row.",
+      "source": "https://docs.rapidapi.com/docs/payouts-and-finance (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "25% fee since 2025-11-15; PayPal only; month N paid end of month N+1; minimum not stated"
+    },
+    {
+      "id": "apify-store",
+      "name": "Apify Store (paid Actors)",
+      "category": "monetize",
+      "submit": "https://console.apify.com",
+      "listing": "apify.com/<user>/<actor> Store page",
+      "dr": null,
+      "requires": [
+        "apify-actor"
+      ],
+      "cost": "20% commission + platform usage costs",
+      "review": "Store publication checks",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "claude: build the Actor with .actor/actor.json, input schema and README",
+        "approve: apify push",
+        "human: set pricing (pay per event or pay per usage) and payout details in Console"
+      ],
+      "notes": "Store pages are public; agent payments supported for limited-permission Actors. Budget ~2h/week maintenance.",
+      "source": "https://docs.apify.com/platform/actors/publishing/monetize (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "Apify keeps 20%; your payout = revenue - 20% - platform usage; payout minimum/method not on loaded page"
+    },
+    {
+      "id": "aws-marketplace",
+      "name": "AWS Marketplace",
+      "category": "monetize",
+      "submit": "https://aws.amazon.com/marketplace/management",
+      "listing": "aws.amazon.com/marketplace/pp/<id> product page",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "website"
+      ],
+      "cost": "listing fee per sale",
+      "review": "manual seller + product review",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: register as a seller (tax, bank) in the AWS Marketplace Management Portal",
+        "claude: implement SaaS registration/metering integration",
+        "human: submit the product listing"
+      ],
+      "notes": "Enterprise buyers can spend committed AWS budget.",
+      "source": "https://docs.aws.amazon.com/marketplace/latest/userguide/listing-fees.html (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "SaaS public offers 3%, AMI/container/ML 20%, private offers 3% (<$1M) down to 1.5%; CPPO +0.5%"
+    },
+    {
+      "id": "microsoft-marketplace",
+      "name": "Microsoft Marketplace (AppSource / Azure)",
+      "category": "monetize",
+      "submit": "https://partner.microsoft.com (Partner Center)",
+      "listing": "appsource.microsoft.com / azuremarketplace listing; free 'Contact me' or 'Free trial' listings also give a page",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "website"
+      ],
+      "cost": "3% store service fee on transactable offers",
+      "review": "manual certification",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: create a Partner Center account with payout and tax profiles",
+        "claude: for transact SaaS, integrate Entra ID SSO and the SaaS Fulfillment APIs",
+        "human: create the offer (Contact me, Free trial or Get It Now) and submit"
+      ],
+      "notes": "A listing-only 'Contact me' offer is an exposure play with no billing integration.",
+      "source": "https://learn.microsoft.com/en-us/partner-center/marketplace-offers/marketplace-commercial-transaction-capabilities-and-considerations (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "3% store service fee unless otherwise specified, deducted at payout; SaaS must be multitenant with Entra ID"
+    },
+    {
+      "id": "gcp-marketplace",
+      "name": "Google Cloud Marketplace",
+      "category": "monetize",
+      "submit": "https://console.cloud.google.com/producer-portal",
+      "listing": "console.cloud.google.com/marketplace/product/<id>",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "website"
+      ],
+      "cost": "fee not stated on loaded page",
+      "review": "manual listing review",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: join Google Cloud Partner Network and accept the Marketplace Vendor Agreement",
+        "human: complete Project Info, then build the listing in Producer Portal"
+      ],
+      "notes": "Supports SaaS, VMs, Kubernetes apps, containers, datasets and AI agents.",
+      "source": "https://docs.cloud.google.com/marketplace/docs/partners/offer-products (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "fee/revenue share not stated on loaded page; check pricing guides in Partner Network Hub"
+    },
+    {
+      "id": "extensionpay",
+      "name": "ExtensionPay",
+      "category": "monetize",
+      "submit": "https://extensionpay.com",
+      "listing": "none (payments inside your extension)",
+      "dr": null,
+      "requires": [
+        "browser-ext"
+      ],
+      "cost": "5% per charge",
+      "review": "none",
+      "link": "none",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: create an ExtensionPay account and connect Stripe",
+        "claude: add the ExtPay library and paywall calls to the extension"
+      ],
+      "notes": "Replacement for the retired Chrome Web Store payments; works on Chrome, Firefox, Edge, Opera, Brave. Open source.",
+      "source": "https://extensionpay.com/ (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "5% at time of charge plus Stripe fees; funds land directly in your Stripe account"
+    },
+    {
+      "id": "github-sponsors",
+      "name": "GitHub Sponsors",
+      "category": "monetize",
+      "submit": "https://github.com/sponsors",
+      "listing": "github.com/sponsors/<user> profile page",
+      "dr": null,
+      "requires": [
+        "github-public"
+      ],
+      "cost": "0% from personal sponsors",
+      "review": "GitHub approval of the profile",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": [
+        ".github/FUNDING.yml"
+      ],
+      "steps": [
+        "claude: draft the Sponsors profile text, tiers and .github/FUNDING.yml",
+        "human: apply, set up Stripe Connect payouts and tax forms"
+      ],
+      "notes": "Must reside in a supported region. Sponsor button shows on the repo via FUNDING.yml.",
+      "source": "https://docs.github.com/en/sponsors/getting-started-with-github-sponsors/about-github-sponsors (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "0% on personal-account sponsorships; up to 6% (3% card + 3% service) on org sponsorships; payout minimum not on loaded page"
+    },
+    {
+      "id": "polar",
+      "name": "Polar",
+      "category": "monetize",
+      "submit": "https://polar.sh",
+      "listing": "polar.sh/<org> storefront / checkout pages",
+      "dr": null,
+      "requires": [
+        "website|github-public"
+      ],
+      "cost": "5% + 50c (Starter, free plan)",
+      "review": "account review",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: create an org, complete payout onboarding (Stripe)",
+        "claude: wire checkout links or license keys into the product"
+      ],
+      "notes": "Merchant of record; fits dev tools, license keys, GitHub repo access. Paid plans lower the rate.",
+      "source": "https://polar.sh/docs/merchant-of-record/fees (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "Starter 5%+50c, Pro $20/mo 3.8%+40c, Growth $100/mo 3.6%+35c; +1.5% non-US cards; $15/dispute; Stripe payout fees $2/mo + 0.25%+$0.25"
+    },
+    {
+      "id": "lemon-squeezy",
+      "name": "Lemon Squeezy",
+      "category": "monetize",
+      "submit": "https://www.lemonsqueezy.com",
+      "listing": "store and product pages on <store>.lemonsqueezy.com",
+      "dr": null,
+      "requires": [
+        "website"
+      ],
+      "cost": "5% + 50c",
+      "review": "store activation review",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: create a store and pass activation (identity, payout)",
+        "claude: wire checkout links and license-key validation"
+      ],
+      "notes": "Merchant of record. Now part of Stripe ('Link, LLC f/k/a Lemon Squeezy'); banner mentions a 2026 Stripe Managed Payments update; check before choosing.",
+      "source": "https://www.lemonsqueezy.com/pricing (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "5% + 50c per transaction; extra fees on some non-US payments; no monthly fee"
+    },
+    {
+      "id": "paddle",
+      "name": "Paddle",
+      "category": "monetize",
+      "submit": "https://www.paddle.com",
+      "listing": "none by default (hosted checkout only)",
+      "dr": null,
+      "requires": [
+        "website"
+      ],
+      "cost": "5% + 50c",
+      "review": "account/domain verification (not described on loaded page)",
+      "link": "none",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: sign up and pass verification",
+        "claude: integrate Paddle.js checkout and webhooks"
+      ],
+      "notes": "Merchant of record for SaaS; custom pricing for sub-$10 products.",
+      "source": "https://www.paddle.com/pricing (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "5% + 50c per checkout transaction; no monthly fee"
+    },
+    {
+      "id": "gumroad",
+      "name": "Gumroad",
+      "category": "monetize",
+      "submit": "https://gumroad.com",
+      "listing": "<user>.gumroad.com product page; optional Discover marketplace",
+      "dr": null,
+      "requires": [
+        "skill-md|claude-plugin|website"
+      ],
+      "cost": "10% + 50c direct; 30% via Discover",
+      "review": "none",
+      "link": "unchecked",
+      "effort": "minutes",
+      "artifacts": null,
+      "steps": [
+        "claude: package the skill/template as a zip with README",
+        "human: create the product, price it, connect payout"
+      ],
+      "notes": "Handles sales tax worldwide since 2025-01-01. Good for paid skills, prompt packs, templates.",
+      "source": "https://gumroad.com/pricing (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "10% + $0.50 direct sales, 30% on Discover sales; payout minimum not on loaded page"
+    },
+    {
+      "id": "jetbrains-paid",
+      "name": "JetBrains Marketplace paid plugins",
+      "category": "monetize",
+      "submit": "https://plugins.jetbrains.com",
+      "listing": "same plugin page as jetbrains, with Buy/trial",
+      "dr": null,
+      "requires": [
+        "jetbrains-plugin"
+      ],
+      "cost": "15% commission",
+      "review": "manual approval",
+      "link": "plugin page with in-IDE install",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "claude: add Marketplace licensing checks to the plugin",
+        "human: set vendor info, currency, pricing and bank details"
+      ],
+      "notes": "Builds on the free jetbrains row.",
+      "source": "https://plugins.jetbrains.com/docs/marketplace/revenue-sharing-and-fees.html (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "15% (can change with notice, capped at 25%); USD/EUR; paid up to 30 days after month end; minimum $200/EUR200 (forced payout Dec 31)"
+    },
+    {
+      "id": "atlassian-paid",
+      "name": "Atlassian Marketplace paid apps",
+      "category": "monetize",
+      "submit": "https://developer.atlassian.com/console",
+      "listing": "same listing as atlassian-marketplace with pricing",
+      "dr": null,
+      "requires": [
+        "forge-app"
+      ],
+      "cost": "0% until $1M lifetime Forge revenue, then 17%",
+      "review": "manual, ~1 week",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "claude: set app.licensing.enabled: true in manifest.yml and check license.active",
+        "human: set pricing and payout details, submit"
+      ],
+      "notes": "Forge-only apps (no Connect modules, OAuth, Forge UI) qualify for the $1M incentive.",
+      "source": "https://developer.atlassian.com/market/faqs/pricing-payment-billing (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "Forge: 100% to you until $1M lifetime, then 83% (from 2026-10-01); Connect 75%; paid once $500 accrued, within 30 days after month end"
+    },
+    {
+      "id": "monday-paid",
+      "name": "monday.com marketplace paid apps",
+      "category": "monetize",
+      "submit": "https://developer.monday.com",
+      "listing": "same listing as monday-marketplace with plans",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account"
+      ],
+      "cost": "0% until $200K lifetime, then 15%",
+      "review": "manual",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "claude: implement monday monetization (subscription checks)",
+        "human: submit plans and pricing; set up Payoneer"
+      ],
+      "notes": "Sales-order deals carry a 35% share (terms page, search only).",
+      "source": "https://developer.monday.com/apps/docs/subscriptions-payments-and-billing (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "85/15 after $200K lifetime revenue; Payoneer USD; paid up to 60 days after invoice approval"
+    },
+    {
+      "id": "shopify-billing",
+      "name": "Shopify App Store billing",
+      "category": "monetize",
+      "submit": "https://partners.shopify.com",
+      "listing": "same App Store listing as shopify",
+      "dr": null,
+      "requires": [
+        "shopify-app"
+      ],
+      "cost": "0% on first $1M lifetime, then 15%",
+      "review": "manual app review",
+      "link": "App Store listing",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: pay the $19 one-time Partner registration",
+        "claude: implement the Billing API for plans"
+      ],
+      "notes": "Builds on the shopify row.",
+      "source": "https://shopify.dev/docs/apps/launch/distribution/revenue-share (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "100% of first $1M lifetime (since 2025-01-01), then 15%; 2.9% processing fee on all billing; $19 registration"
+    },
+    {
+      "id": "freemius",
+      "name": "Freemius",
+      "category": "monetize",
+      "submit": "https://freemius.com",
+      "listing": "none (checkout + licensing inside your product)",
+      "dr": null,
+      "requires": [
+        "wordpress-plugin|browser-ext|website"
+      ],
+      "cost": "3.8% + 50c (+2.3% for WordPress)",
+      "review": "seller onboarding",
+      "link": "none",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: create a Freemius account and payout method",
+        "claude: integrate the Freemius SDK for licensing/checkout"
+      ],
+      "notes": "Merchant of record for WordPress plugins/themes, SaaS, Chrome extensions, Electron apps.",
+      "source": "https://freemius.com/pricing/ (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "3.8% + 50c plus gateway fees (+2.3% WordPress), lower above $50K/mo; monthly payouts, $100 minimum"
+    },
+    {
+      "id": "x402",
+      "name": "x402 payments (HTTP 402)",
+      "category": "monetize",
+      "submit": "https://docs.x402.org",
+      "listing": "none on the web; CDP Bazaar indexes x402 resources for agents (API/MCP discovery)",
+      "dr": null,
+      "requires": [
+        "public-api|mcp-remote"
+      ],
+      "cost": "0% protocol fee; facilitator/network fees not stated",
+      "review": "none",
+      "link": "none",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "claude: add x402 middleware that returns 402 with payment requirements",
+        "human: create the receiving wallet and pick a facilitator"
+      ],
+      "notes": "Per-request agent payments without accounts; settles onchain (stablecoins). Bazaar discovery is via SDK/REST/MCP, no browsable page confirmed.",
+      "source": "https://docs.x402.org/ and https://docs.cdp.coinbase.com/x402/bazaar (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "protocol has 0 fees; facilitator and network fees not stated on loaded pages"
+    },
+    {
+      "id": "cloudflare-pay-per-crawl",
+      "name": "Cloudflare Pay per crawl",
+      "category": "monetize",
+      "submit": "https://developers.cloudflare.com/ai-crawl-control/features/pay-per-crawl/what-is-pay-per-crawl/",
+      "listing": "none (charges AI crawlers on your site)",
+      "dr": null,
+      "requires": [
+        "website",
+        "own-domain"
+      ],
+      "cost": "not stated",
+      "review": "closed beta signup",
+      "link": "none",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: request closed-beta access, then set a per-zone price in AI Crawl Control"
+      ],
+      "notes": "Only useful for content-heavy sites (docs, blogs) on Cloudflare. Cloudflare is merchant of record.",
+      "source": "https://developers.cloudflare.com/ai-crawl-control/features/pay-per-crawl/what-is-pay-per-crawl/ (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "fees not stated; closed beta"
+    },
+    {
+      "id": "mcpize",
+      "name": "MCPize (paid MCP marketplace)",
+      "category": "monetize",
+      "submit": "https://mcpize.com",
+      "listing": "mcpize.com/mcp/<server> page (inferred from URLs)",
+      "dr": null,
+      "requires": [
+        "mcp-server"
+      ],
+      "cost": "20% of subscriptions",
+      "review": "unclear",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "claude: prepare the server repo for MCPize hosting",
+        "human: create an account, publish, set subscription price and payout"
+      ],
+      "notes": "Vendor homepage only; payout terms not shown. Small, young marketplace; treat as optional.",
+      "source": "https://mcpize.com/ (loaded 2026-11-08)",
+      "verified": "no",
+      "revenue": "publishers keep 80% of subscriptions; payout method/minimum not shown"
+    },
+    {
+      "id": "apilayer",
+      "name": "APILayer Marketplace",
+      "category": "monetize",
+      "submit": "https://apilayer.com/docs/article/provider-faq",
+      "listing": "marketplace.apilayer.com/<api> page",
+      "dr": null,
+      "requires": [
+        "public-api"
+      ],
+      "cost": "commission not published",
+      "review": "manual quality + technical review",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: apply as a provider and pass review",
+        "human: set pricing and monthly payout (companies invoice APILayer)"
+      ],
+      "notes": "Commission conflicts across sources (handling fee vs 15%); learn it during review.",
+      "source": "https://apilayer.com/docs/article/provider-faq (search only, not loaded 2026-11-08)",
+      "verified": "no",
+      "revenue": "split not published; monthly payouts"
     }
   ]
 }

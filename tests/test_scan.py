@@ -35,12 +35,49 @@ class ScanTest(unittest.TestCase):
             self.assertNotIn("smithery", ids)  # needs a live remote URL, which only --have declares
             self.assertIn("mcp-remote", dict(unlocks))
 
+    def test_detects_marketplace_app_manifests(self):
+        files = {
+            ".actor/actor.json": "{}",
+            ".cursor-plugin/plugin.json": "{}",
+            "teams/manifest.json": '{"$schema": "https://developer.microsoft.com/json-schemas/teams/v1.19/MicrosoftTeams.schema.json"}',
+            "forge/manifest.yml": "modules:\n  jira:issuePanel: []\napp:\n  id: ari:x\n",
+            "addon/appsscript.json": '{"addOns": {}}',
+            "jsr.json": "{}",
+        }
+        with tempfile.TemporaryDirectory() as d:
+            for rel, text in files.items():
+                os.makedirs(os.path.dirname(os.path.join(d, rel)), exist_ok=True)
+                open(os.path.join(d, rel), "w").write(text)
+            found = set(scan.detect(d))
+        self.assertTrue({"apify-actor", "cursor-plugin", "teams-app", "forge-app", "workspace-addon", "jsr-package"} <= found)
+        self.assertNotIn("browser-ext", found)
+
     def test_either_or_requirement(self):
         cat = scan.load_catalog()
         ids = lambda have: {p["id"] for p, _ in scan.route(have, cat)[0]}
         self.assertIn("cursor-directory", ids({"github-public", "skill-md"}))
         self.assertIn("cursor-directory", ids({"github-public", "mcp-server"}))
         self.assertNotIn("cursor-directory", ids({"github-public"}))
+
+    def test_monetize_rows_need_revenue_and_report_apart(self):
+        row = {"id": "x-pay", "name": "X", "category": "monetize", "submit": "u", "requires": ["github-public"],
+               "cost": "free", "review": "none", "link": "none", "effort": "minutes", "source": "s",
+               "verified": "no", "steps": ["human: sign up"]}
+        self.assertIn("x-pay: monetize rows need revenue (fee, rev share, payout minimum)", scan.check([row]))
+        self.assertEqual(scan.check([{**row, "revenue": "5%"}]), [])
+        eligible, _, _ = scan.route({"github-public"}, [{**row, "revenue": "5%"}])
+        self.assertEqual([p["id"] for p, _ in eligible], ["x-pay"])
+
+    def test_recipes_are_named_for_known_ids(self):
+        with tempfile.TemporaryDirectory() as d:
+            open(os.path.join(d, "browser-ext.md"), "w").write("x")
+            open(os.path.join(d, "n8n.md"), "w").write("x")
+            open(os.path.join(d, "nope.md"), "w").write("x")
+            old, scan.RECIPES = scan.RECIPES, d
+            try:
+                self.assertEqual(scan.check(scan.load_catalog()), ["recipes/nope.md: not an asset or platform id"])
+            finally:
+                scan.RECIPES = old
 
     def test_rejects_unknown_declared_asset(self):
         r = subprocess.run([sys.executable, SCAN, ".", "--have", "nope"], capture_output=True, text=True)
