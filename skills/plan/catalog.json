@@ -748,12 +748,13 @@
       "link": "component page + npx install",
       "effort": "hours",
       "steps": [
-        "claude: copy the component into a fork under cli-tool/components/<type>/<category>/ per CONTRIBUTING.md",
-        "claude: npx claude-code-templates@latest --skill <cat>/<name> --dry-run",
-        "approve: open a PR containing only the component"
+        "claude: a whole plugin goes in as an external manifest, no code copied: cli-tool/components/plugins/<category>/<name>/source.json with repo, path ('' for repo root), commit (full 40-hex sha), license, author (python scripts/external_skills.py add OWNER/REPO PATH CATEGORY --plugin); a lone skill goes under cli-tool/components/skills/<category>/<name>/",
+        "claude: never commit docs/components.json or dashboard/public/ (generated-files-guard fails the PR)",
+        "approve: fork, push a branch, open a PR containing only the manifest"
       ],
-      "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "source": "github.com/davila7/claude-code-templates CONTRIBUTING.md and CLAUDE.md (loaded 2026-11-08)",
+      "verified": "yes",
+      "notes": "CI runs SkillSpector (HIGH/CRITICAL blocks), claude plugin validate and AI review; triage labels follow. Upstream changes reach users only via a PR that bumps commit."
     },
     {
       "id": "awesome-claude-code",
@@ -791,9 +792,10 @@
       "link": "registry page",
       "effort": "minutes",
       "steps": [
-        "claude: keep plugin.json and SKILL.md at standard paths so the crawler finds them"
+        "claude: keep plugin.json and SKILL.md at standard paths so the crawler finds them",
+        "claude: check indexing with curl 'https://claude-plugins.dev/api/plugins?q=<owner>' and '/api/skills?q=<owner>'"
       ],
-      "notes": "Detection trigger undocumented.",
+      "notes": "Indexed by a val.town crawler; trigger and cadence undocumented. A repo created the same day was not yet indexed (2026-11-08).",
       "source": "research 2026-11-07 (official page loaded)",
       "verified": "yes"
     },
@@ -801,7 +803,7 @@
       "id": "buildwithclaude",
       "name": "Build with Claude",
       "category": "claude",
-      "submit": "https://www.buildwithclaude.com",
+      "submit": "https://github.com/davepoon/buildwithclaude",
       "dr": null,
       "requires": [
         "github-public",
@@ -812,11 +814,13 @@
       "link": "listing",
       "effort": "minutes",
       "steps": [
-        "human: submit the repo URL on the site, or",
-        "approve: open a PR to davepoon/buildwithclaude"
+        "claude: add an entry to .claude-plugin/marketplace.json with plugin.json display fields, a category, and source {source: git-subdir, url: https://github.com/<repo>.git, path, sha}",
+        "approve: fork, push branch add-<name>, open a PR titled 'Add <name> plugin' using the CONTRIBUTING.md description template",
+        "claude: separately, its Plugin Marketplaces page auto-discovers repos with topic claude-code-plugin(s) or a marketplace.json via GitHub search"
       ],
-      "source": "research 2026-11-07 (official page loaded) (homepage only)",
-      "verified": "no"
+      "source": "github.com/davepoon/buildwithclaude CONTRIBUTING.md, scripts/fetch-plugins.js (loaded 2026-11-08)",
+      "verified": "yes",
+      "notes": "There is no web submit form (/contribute is 404). Merges auto-deploy to buildwithclaude.com."
     },
     {
       "id": "docker-mcp",
@@ -855,14 +859,16 @@
       "link": "gallery page",
       "effort": "minutes",
       "artifacts": [
-        "gemini-extension.json at the repo root"
+        "gemini-extension.json at the repo root (name, version, description; skills in skills/<name>/SKILL.md are picked up)"
       ],
       "steps": [
-        "claude: write gemini-extension.json (MCP server config + context file)",
-        "human: add the GitHub topic gemini-cli-extension in the repo's About section"
+        "claude: write gemini-extension.json and run gemini extensions validate .; optionally gemini extensions link . to confirm the skills load, then uninstall",
+        "approve: push, then gh repo edit --add-topic gemini-cli-extension",
+        "claude: the gallery crawls topic-tagged public repos daily; check it the next day"
       ],
-      "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "source": "https://geminicli.com/docs/extensions/releasing/ (loaded 2026-11-08)",
+      "verified": "yes",
+      "notes": "Manifest must sit at the repo root or release-archive root. Claude-only frontmatter (disable-model-invocation) is ignored by Gemini."
     },
     {
       "id": "apis-guru",
