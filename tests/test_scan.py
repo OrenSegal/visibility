@@ -35,6 +35,13 @@ class ScanTest(unittest.TestCase):
             self.assertNotIn("smithery", ids)  # needs a live remote URL, which only --have declares
             self.assertIn("mcp-remote", dict(unlocks))
 
+    def test_either_or_requirement(self):
+        cat = scan.load_catalog()
+        ids = lambda have: {p["id"] for p, _ in scan.route(have, cat)[0]}
+        self.assertIn("cursor-directory", ids({"github-public", "skill-md"}))
+        self.assertIn("cursor-directory", ids({"github-public", "mcp-server"}))
+        self.assertNotIn("cursor-directory", ids({"github-public"}))
+
     def test_rejects_unknown_declared_asset(self):
         r = subprocess.run([sys.executable, SCAN, ".", "--have", "nope"], capture_output=True, text=True)
         self.assertNotEqual(r.returncode, 0)

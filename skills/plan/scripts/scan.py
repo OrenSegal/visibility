@@ -24,7 +24,7 @@ MAX_FILES = 20_000
 
 # asset -> (how it is known, description). "ask" assets are never detected, only declared with --have.
 ASSETS = {
-    "github-public":  ("detect", "public GitHub repo (origin on github.com; confirm it is public)"),
+    "github-public":  ("detect", "public GitHub repo (checked with gh)"),
     "skill-md":       ("detect", "an Agent Skill (SKILL.md)"),
     "claude-plugin":  ("detect", "a Claude Code plugin (.claude-plugin/plugin.json)"),
     "mcp-server":     ("detect", "MCP server code (MCP SDK dependency or server.json)"),
@@ -161,7 +161,15 @@ def detect(root):
     except (OSError, subprocess.SubprocessError):
         origin = ""
     if "github.com" in origin:
-        hit("github-public", origin)
+        try:  # a github.com remote may be private; only gh can tell
+            private = subprocess.run(["gh", "repo", "view", origin, "--json", "isPrivate", "-q", ".isPrivate"],
+                                     capture_output=True, text=True, timeout=10).stdout.strip()
+        except (OSError, subprocess.SubprocessError):
+            private = ""
+        if private == "false":
+            hit("github-public", origin)
+        else:
+            found["github-remote"] = f"{origin} (private or unknown; not counted as public)"
     return found
 
 
@@ -185,6 +193,8 @@ def report(root, have_extra, catalog):
     have = set(found) | set(have_extra)
     eligible, unlocks, far = route(have, catalog)
     out = [f"# {os.path.basename(os.path.abspath(root))}", "", "## Assets", ""]
+    if "github-remote" in found:
+        out.append(f"- [ ] `github-public`: {found.pop('github-remote')}")
     for a, (kind, desc) in ASSETS.items():
         if a in found:
             out.append(f"- [x] `{a}`: {desc} ({found[a]})")
@@ -201,7 +211,7 @@ def report(root, have_extra, catalog):
     for asset, ps in unlocks:
         out.append(f"- `{asset}` unlocks {len(ps)}: " + ", ".join(f"`{p['id']}`" for p in ps))
     out += ["", f"## Two or more assets away: {len(far)}", ""]
-    return "\n".join(out), {"root": root, "assets": found, "declared": sorted(have_extra),
+    return "\n".join(out), {"root": root, "assets": {k: v for k, v in found.items() if k in ASSETS}, "declared": sorted(have_extra),
                             "eligible": [p["id"] for p, _ in eligible],
                             "unlocks": {a: [p["id"] for p in ps] for a, ps in unlocks}}
 
