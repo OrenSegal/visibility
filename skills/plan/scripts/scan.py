@@ -262,7 +262,8 @@ def report(root, have_extra, catalog):
     have_recipe = recipes()
     out += ["", "## One asset away", ""]
     for asset, ps in unlocks:
-        hint = f" (recipe: `/visibility:build {asset}`)" if set(asset.split("|")) & have_recipe else ""
+        built = sorted(set(asset.split("|")) & have_recipe)
+        hint = f" (recipe: `/visibility:build {built[0]}`)" if built else ""
         out.append(f"- `{asset}` unlocks {len(ps)}{hint}: " + ", ".join(f"`{p['id']}`" for p in ps))
     out += ["", f"## Two or more assets away: {len(far)}", ""]
     return "\n".join(out), {"root": root, "assets": {k: v for k, v in found.items() if k in ASSETS}, "declared": sorted(have_extra),

@@ -41,7 +41,7 @@
         "mcp-remote"
       ],
       "cost": "free",
-      "review": "none",
+      "review": "unknown (curated since 2026-10-31)",
       "link": "dofollow (claimed)",
       "effort": "minutes",
       "artifacts": [
@@ -49,15 +49,12 @@
         "icon"
       ],
       "steps": [
-        "human: sign in at smithery.ai/new and paste the remote MCP URL",
-        "human: if the server takes an API key, add connection parameter apiKey with location header, output as header Authorization (the default query location never reaches your auth)",
-        "human: Settings tab: display name, description, homepage, icon, GitHub repo",
-        "human: add the smithery-verification TXT record to the root domain",
-        "approve: commit the Smithery badge to the repo README"
+        "claude: open smithery.ai and smithery.ai/future; follow whatever listing path the live site gives, if any",
+        "human: if a submit path exists, sign in and submit the remote MCP URL"
       ],
-      "source": "thread",
-      "verified": "no",
-      "notes": "smithery.ai (loaded 2026-11-08): 'Smithery's MCP Proxy and managed identity shut down on October 31'; treat it as a directory, not a gateway, and re-check what /future says replaces it. 2026-11 recheck: URL publish at smithery.ai/new or `smithery mcp publish <url> -n @org/server`; stdio servers ship as an MCPB bundle; serve /.well-known/mcp/server-card.json if the scan can't reach tools; return 401 not 403 so OAuth discovery works; allowlist the SmitheryBot/1.0 user agent."
+      "source": "https://smithery.ai/future (loaded 2026-11-08)",
+      "verified": "yes",
+      "notes": "smithery.ai/future (loaded 2026-11-08): 'On October 31, 2026, we're shutting down Smithery's connection management services.' Smithery stays a public, non-proxied registry with 'a curated set of verified servers'; it does not say how new servers get listed, and smithery.ai/new returns 404. Old flow (thread): paste URL at /new, apiKey header param, TXT verification, badge."
     },
     {
       "id": "glama",
@@ -156,7 +153,7 @@
       "listing": "zapier.com/apps/<app>/integrations",
       "dr": 91,
       "requires": [
-        "mcp-remote",
+        "public-api",
         "test-account"
       ],
       "cost": "free trial",
@@ -164,13 +161,12 @@
       "link": "dedicated app page",
       "effort": "days",
       "steps": [
-        "human: create a Zapier developer account",
-        "human: create an integration from the MCP server and fill in the form",
-        "human: test every tool call in the Zapier editor",
-        "human: submit for review"
+        "claude: map the API's auth and main actions to triggers/actions (recipes/zapier.md)",
+        "human: build the integration in the Zapier Platform UI (REST), test every trigger and action",
+        "human: invite integration-testing@zapier.com as the reviewer test account, then submit for public review"
       ],
-      "notes": "Zapier also supports classic REST integrations; the thread uses the MCP path.",
-      "source": "thread",
+      "notes": "No official page documents building a public integration from an MCP server (the thread's path); the documented route is a Platform UI REST integration.",
+      "source": "https://docs.zapier.com/platform (loaded 2026-11-08)",
       "verified": "no"
     },
     {
@@ -221,9 +217,9 @@
     },
     {
       "id": "chatgpt-apps",
-      "name": "ChatGPT app directory (Apps SDK, MCP)",
+      "name": "ChatGPT / Codex plugins (MCP)",
       "category": "mcp",
-      "submit": "https://platform.openai.com",
+      "submit": "https://platform.openai.com/plugins (Upload new or existing plugin)",
       "dr": 93,
       "requires": [
         "mcp-remote",
@@ -236,17 +232,46 @@
       "link": "dedicated page (claimed dofollow)",
       "effort": "days",
       "artifacts": [
-        "listing: name, description, logo, 3 starter prompts",
-        "5 test cases + 3 negative test cases"
+        "plugin ZIP: plugin.json at the root (OpenAI settings under extensions.com.openai), mcp.json, skills/, assets/ icons",
+        "5 positive and 3 negative review cases",
+        "demo video URL",
+        "/.well-known/openai-apps-challenge token on the MCP host"
       ],
       "steps": [
-        "claude: write the 3 starter prompts and the 8 test cases from the MCP tool list",
+        "claude: build the ZIP per recipes/chatgpt-apps.md and draft the 8 review cases from the MCP tool list",
+        "claude: serve the challenge token as plain text at https://<mcp-host>/.well-known/openai-apps-challenge",
         "human: verify identity in OpenAI platform organization settings",
-        "human: create the app, paste the MCP URL, scan tools, fill in the listing, attach test account and demo video, submit"
+        "human: upload the ZIP at platform.openai.com/plugins (With MCP), enter reviewer credentials in Review details, attach the demo video URL, submit"
       ],
-      "notes": "The thread calls these 'ChatGPT plugins' at platform.openai.com/plugins; the 2023 plugin program was retired, this is the Apps SDK/MCP flow. Re-check the live page and name before walking the user through it. Codex plugins share this directory (research 2026-11-08, unconfirmed by a second load): no lifecycle hooks, remote HTTPS MCP only, no API-key auth.",
-      "source": "thread",
-      "verified": "no"
+      "notes": "Auth: none, OAuth, or mixed; API-key/bearer flows unsupported and nonempty server headers rejected. One MCP server per plugin; ZIPs with apps/.app.json or lifecycle hooks can't be submitted. Codex uses .codex-plugin/plugin.json and .mcp.json.",
+      "source": "https://developers.openai.com/apps-sdk/deploy/submission (loaded 2026-11-08)",
+      "verified": "yes"
+    },
+    {
+      "id": "openai-skills-plugin",
+      "name": "ChatGPT / Codex plugins (skills only)",
+      "category": "mcp",
+      "submit": "https://platform.openai.com/plugins (Upload new or existing plugin)",
+      "dr": null,
+      "requires": [
+        "skill-md",
+        "github-public"
+      ],
+      "cost": "free",
+      "review": "manual (no MCP review cases or demo needed)",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": [
+        "plugin ZIP: plugin.json at the root (extensions.com.openai settings), skills/, assets/ icons; or .codex-plugin/plugin.json for Codex"
+      ],
+      "steps": [
+        "claude: package the existing skills/ folder with a root plugin.json and icons into a ZIP (no hooks, no apps)",
+        "human: verify identity in OpenAI platform organization settings",
+        "human: upload the ZIP at platform.openai.com/plugins and submit"
+      ],
+      "notes": "The submission guide: 'Skills-only plugins don't need MCP review cases or a demo recording.' Same directory as chatgpt-apps.",
+      "source": "https://developers.openai.com/apps-sdk/deploy/submission (loaded 2026-11-08)",
+      "verified": "yes"
     },
     {
       "id": "cursor-directory",
@@ -340,11 +365,12 @@
       ],
       "steps": [
         "claude: add plugin.json, mcp.json and the skill to the public repo",
-        "human: install the plugin in Hermes and capture test results",
-        "approve: open the PR to NousResearch/hermes-agent with the yaml and the test results"
+        "claude: run hermes plugins validate --install-deps",
+        "approve: open the PR to NousResearch/hermes-agent adding plugin-catalog/<name>.yaml pinned to a full 40-character commit SHA, with the disclosures"
       ],
-      "source": "thread",
-      "verified": "no"
+      "source": "https://github.com/NousResearch/hermes-agent (loaded 2026-11-08)",
+      "verified": "no",
+      "notes": "The PR must come from the repo owner or a major contributor; catalog CI must be green. Test results are not required."
     },
     {
       "id": "emdash",
@@ -357,7 +383,7 @@
         "website"
       ],
       "cost": "free",
-      "review": "none",
+      "review": "manual: listing stays unavailable until approved",
       "link": "dofollow via author.url",
       "effort": "hours",
       "artifacts": [
@@ -365,12 +391,14 @@
         "manifest with author.url = your site"
       ],
       "steps": [
-        "claude: build the plugin and manifest",
-        "human: log in with Bluesky (ideally a domain handle)",
-        "approve: emdash-plugin publish"
+        "claude: build the plugin with emdash-plugin.jsonc, putting the product website in author.url (recipes/emdash.md)",
+        "human: emdash-plugin login with an atproto handle (Bluesky; ideally your domain as handle)",
+        "approve: emdash-plugin publish",
+        "claude: check the listing after approval"
       ],
-      "source": "thread",
-      "verified": "no"
+      "source": "https://github.com/emdash-cms/emdash/blob/main/packages/plugin-cli/README.md (loaded 2026-11-08)",
+      "verified": "yes",
+      "notes": "Publishing is marked EXPERIMENTAL in the plugin-cli README."
     },
     {
       "id": "albato",
@@ -414,7 +442,7 @@
         "one module per main action (create, list, delete)"
       ],
       "steps": [
-        "claude: generate the app definition from the OpenAPI file",
+        "claude: build the app with an AI coding agent using integromat/make-apps-skill and the Make TypeScript SDK (the VS Code Make Apps Editor is deprecated); see recipes/make.md",
         "human: create the custom app in Make and paste the definition",
         "human: run every module in a real scenario, plus one scenario showing an API error; collect the run links",
         "human: make all modules visible, fill in the review form with run links and docs URL, Request review"
@@ -426,7 +454,7 @@
       "id": "n8n",
       "name": "n8n verified community node",
       "category": "automation",
-      "submit": "n8n Creator Portal",
+      "submit": "https://creators.n8n.io/nodes",
       "dr": 90,
       "requires": [
         "public-api",
@@ -434,7 +462,7 @@
         "demo-video"
       ],
       "cost": "free",
-      "review": "manual",
+      "review": "manual, up to 4 weeks",
       "link": "dofollow (claimed)",
       "effort": "days",
       "artifacts": [
@@ -447,8 +475,9 @@
         "human: submit in the Creator Portal",
         "human: record an uncut demo on self-hosted n8n: install the exact version, add the credential, run operations, use it as an AI agent tool"
       ],
-      "source": "thread",
-      "verified": "no"
+      "source": "https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/ (loaded 2026-11-08)",
+      "verified": "no",
+      "notes": "Since 2026-05-01 verified nodes must be published to npm from GitHub Actions with provenance. usableAsTool and the demo-video stage come from forum posts, not official pages."
     },
     {
       "id": "linear",

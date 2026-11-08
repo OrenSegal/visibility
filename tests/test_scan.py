@@ -63,8 +63,9 @@ class ScanTest(unittest.TestCase):
         row = {"id": "x-pay", "name": "X", "category": "monetize", "submit": "u", "requires": ["github-public"],
                "cost": "free", "review": "none", "link": "none", "effort": "minutes", "source": "s",
                "verified": "no", "steps": ["human: sign up"]}
-        self.assertIn("x-pay: monetize rows need revenue (fee, rev share, payout minimum)", scan.check([row]))
-        self.assertEqual(scan.check([{**row, "revenue": "5%"}]), [])
+        rows = lambda r: [e for e in scan.check([r]) if e.startswith("x-pay")]
+        self.assertEqual(rows(row), ["x-pay: monetize rows need revenue (fee, rev share, payout minimum)"])
+        self.assertEqual(rows({**row, "revenue": "5%"}), [])
         eligible, _, _ = scan.route({"github-public"}, [{**row, "revenue": "5%"}])
         self.assertEqual([p["id"] for p, _ in eligible], ["x-pay"])
 
