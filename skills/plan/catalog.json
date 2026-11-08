@@ -283,15 +283,15 @@
       ],
       "cost": "free",
       "review": "none (install telemetry)",
-      "link": "page with install command and counter",
+      "link": "page with install command and counter; repo link is rel=\"ugc nofollow\" (observed 2026-11-07)",
       "effort": "minutes",
       "steps": [
         "claude: write or check the SKILL.md (delegate to skill-creator)",
-        "approve: run npx skills add <org>/<repo> once"
+        "approve: npx skills add <owner>/<repo> --skill '*' --agent claude-code -y from a scratch project dir (one install creates the page)"
       ],
-      "source": "thread",
-      "verified": "no",
-      "notes": "No submission form: listing and rank come from anonymous `npx skills` install telemetry; how a skill first appears is undocumented."
+      "source": "thread + used 2026-11-07",
+      "verified": "yes",
+      "notes": "Listing appeared immediately after one install at skills.sh/<owner>/<repo> (lowercased). Ranking comes from install telemetry. Skill folders are copied whole, so scripts beside SKILL.md ship too."
     },
     {
       "id": "clawhub",
