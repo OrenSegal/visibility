@@ -18,6 +18,7 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CATALOG = os.path.join(os.path.dirname(HERE), "catalog.json")
+RECIPES = os.path.join(os.path.dirname(os.path.dirname(HERE)), "build", "recipes")
 SKIP = re.compile(r"(^|/)(node_modules|vendor|Pods|build|dist|\.build|DerivedData|\.dart_tool|\.next|target"
                   r"|\.venv|venv|__pycache__|\.git|\.audit|\.visibility|_archive|_worktrees)(/|$)")
 MAX_FILES = 20_000
@@ -44,6 +45,18 @@ ASSETS = {
     "jetbrains-plugin": ("detect", "a JetBrains plugin (META-INF/plugin.xml)"),
     "figma-plugin":   ("detect", "a Figma plugin (manifest.json with editorType)"),
     "wordpress-plugin": ("detect", "a WordPress plugin (PHP 'Plugin Name:' header)"),
+    "cursor-plugin":   ("detect", "a Cursor plugin (.cursor-plugin/plugin.json)"),
+    "zed-extension":   ("detect", "a Zed extension (extension.toml)"),
+    "kiro-power":      ("detect", "a Kiro power (POWER.md; a plugin.json-format power is declared with --have)"),
+    "teams-app":       ("detect", "a Microsoft Teams app (manifest.json with the MicrosoftTeams $schema)"),
+    "power-connector":  ("detect", "a Power Platform custom connector (apiDefinition.swagger.json + apiProperties.json)"),
+    "forge-app":       ("detect", "an Atlassian Forge app (manifest.yml with app.id / modules)"),
+    "workspace-addon":  ("detect", "a Google Workspace add-on (appsscript.json with addOns)"),
+    "canva-app":       ("detect", "a Canva app (@canva/app-ui-kit or @canva/platform dependency)"),
+    "framer-plugin":   ("detect", "a Framer plugin (framer-plugin dependency)"),
+    "webflow-app":     ("detect", "a Webflow Designer Extension (webflow.json / @webflow/designer-extension-typings)"),
+    "apify-actor":     ("detect", "an Apify Actor (.actor/actor.json)"),
+    "jsr-package":     ("detect", "a JSR package (jsr.json)"),
     "slack-app":      ("ask", "a Slack app with real installs (10+ workspaces or 20+ MAU)"),
     "discord-app":    ("ask", "a verified Discord app"),
     "shopify-app":    ("ask", "a Shopify app"),
@@ -69,6 +82,14 @@ def read(path, limit=200_000):
             return f.read(limit)
     except OSError:
         return ""
+
+
+def recipes():
+    """Ids (asset or platform) that have a build recipe in ../../build/recipes/<id>.md."""
+    try:
+        return {f[:-3] for f in os.listdir(RECIPES) if f.endswith(".md")}
+    except OSError:
+        return set()
 
 
 def load_catalog():
@@ -118,13 +139,33 @@ def detect(root):
             hit("jetbrains-plugin", rel)
         elif base.endswith(".php") and "/" not in rel and re.search(r"^\s*\*?\s*Plugin Name:", read(path, 8192), re.M):
             hit("wordpress-plugin", rel)
+        elif rel.endswith(".cursor-plugin/plugin.json"):
+            hit("cursor-plugin", rel)
+        elif rel.endswith(".actor/actor.json"):
+            hit("apify-actor", rel)
+        elif base == "extension.toml":
+            hit("zed-extension", rel)
+        elif base == "POWER.md":
+            hit("kiro-power", rel)
+        elif base == "apiProperties.json":
+            hit("power-connector", rel)
+        elif base == "manifest.yml" and re.search(r"^app:", read(path), re.M) and re.search(r"^modules:", read(path), re.M):
+            hit("forge-app", rel)
+        elif base == "appsscript.json" and '"addOns"' in read(path):
+            hit("workspace-addon", rel)
+        elif base == "webflow.json":
+            hit("webflow-app", rel)
+        elif base == "jsr.json":
+            hit("jsr-package", rel)
         elif base == "llms.txt":
             hit("llms-txt", rel)
         elif rel in ("action.yml", "action.yaml"):
             hit("github-action", rel)
         elif base == "manifest.json":
             text = read(path)
-            if '"manifest_version"' in text:
+            if "MicrosoftTeams" in text:
+                hit("teams-app", rel)
+            elif '"manifest_version"' in text:
                 hit("browser-ext", rel)
             elif '"minAppVersion"' in text:
                 hit("obsidian-plugin", rel)
@@ -138,6 +179,12 @@ def detect(root):
             deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
             if "@modelcontextprotocol/sdk" in deps or "fastmcp" in deps:
                 hit("mcp-server", rel)
+            if "@canva/app-ui-kit" in deps or "@canva/platform" in deps:
+                hit("canva-app", rel)
+            if "framer-plugin" in deps:
+                hit("framer-plugin", rel)
+            if "@webflow/designer-extension-typings" in deps:
+                hit("webflow-app", rel)
             if "@raycast/api" in deps:
                 hit("raycast-ext", rel)
             if "vscode" in pkg.get("engines", {}):
@@ -202,17 +249,24 @@ def report(root, have_extra, catalog):
             out.append(f"- [x] `{a}`: {desc} (declared)")
         elif kind == "ask":
             out.append(f"- [ ] `{a}`: {desc} (ask)")
-    out += ["", f"## Eligible now ({len(eligible)})", "",
+    listed = [(p, m) for p, m in eligible if p["category"] != "monetize"]
+    earn = [(p, m) for p, m in eligible if p["category"] == "monetize"]
+    out += ["", f"## Eligible now ({len(listed)})", "",
             "| Platform | DR (claimed) | Effort | Cost | Link | Verified |", "|---|---|---|---|---|---|"]
-    for p, _ in eligible:
+    for p, _ in listed:
         out.append(f"| `{p['id']}` {p['name']} | {p.get('dr') or '?'} | {p['effort']} | {p['cost']} "
                    f"| {p['link']} | {p['verified']} |")
+    out += ["", f"## Earn now ({len(earn)})", "", "| Channel | Revenue | Effort | Verified |", "|---|---|---|---|"]
+    for p, _ in earn:
+        out.append(f"| `{p['id']}` {p['name']} | {p['revenue']} | {p['effort']} | {p['verified']} |")
+    have_recipe = recipes()
     out += ["", "## One asset away", ""]
     for asset, ps in unlocks:
-        out.append(f"- `{asset}` unlocks {len(ps)}: " + ", ".join(f"`{p['id']}`" for p in ps))
+        hint = f" (recipe: `/visibility:build {asset}`)" if set(asset.split("|")) & have_recipe else ""
+        out.append(f"- `{asset}` unlocks {len(ps)}{hint}: " + ", ".join(f"`{p['id']}`" for p in ps))
     out += ["", f"## Two or more assets away: {len(far)}", ""]
     return "\n".join(out), {"root": root, "assets": {k: v for k, v in found.items() if k in ASSETS}, "declared": sorted(have_extra),
-                            "eligible": [p["id"] for p, _ in eligible],
+                            "eligible": [p["id"] for p, _ in listed], "earn": [p["id"] for p, _ in earn],
                             "unlocks": {a: [p["id"] for p in ps] for a, ps in unlocks}}
 
 
@@ -229,11 +283,15 @@ def check(catalog):
             errors.append(f"{where}: effort must be one of {', '.join(EFFORT)}")
         if p.get("verified") not in ("yes", "no"):
             errors.append(f"{where}: verified must be yes or no")
+        if p.get("category") == "monetize" and not p.get("revenue"):
+            errors.append(f"{where}: monetize rows need revenue (fee, rev share, payout minimum)")
         if not (p.get("steps") or p.get("see")):
             errors.append(f"{where}: needs steps or a see pointer")
         for s in p.get("steps", []):
             if not re.match(r"^(claude|human|approve): ", s):
                 errors.append(f"{where}: step must start with claude:/human:/approve: -> {s[:40]}")
+    ids |= set(ASSETS)
+    errors += [f"recipes/{r}.md: not an asset or platform id" for r in sorted(recipes() - ids)]
     return errors
 
 
@@ -247,7 +305,7 @@ def main():
     catalog = load_catalog()
     if a.check:
         errors = check(catalog)
-        print("\n".join(errors) or f"ok: {len(catalog)} platforms")
+        print("\n".join(errors) or f"ok: {len(catalog)} platforms, {len(recipes())} recipes")
         return 1 if errors else 0
     have = {x.strip() for x in a.have.split(",") if x.strip()}
     bad = have - set(ASSETS)

@@ -18,7 +18,9 @@
   ],
   "skills": [
     "./skills/plan",
-    "./skills/register"
+    "./skills/register",
+    "./skills/build",
+    "./skills/monetize"
   ],
   "homepage": "https://github.com/OrenSegal/visibility",
   "repository": "https://github.com/OrenSegal/visibility"
