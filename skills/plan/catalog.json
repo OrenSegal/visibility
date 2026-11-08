@@ -298,23 +298,23 @@
       "name": "ClawHub (OpenClaw skills)",
       "category": "skills",
       "submit": "https://clawhub.ai",
-      "listing": "clawhub.ai/<user>/skills/<skill>",
+      "listing": "clawhub.ai/<user>/skills/<slug>",
       "dr": 83,
       "requires": [
         "skill-md"
       ],
       "cost": "free",
-      "review": "automated security audit",
+      "review": "automated security scan, then published (minutes or longer)",
       "link": "dofollow (claimed) via signup URL in setup steps",
       "effort": "minutes",
       "steps": [
-        "claude: put the signup URL in the skill's setup steps",
-        "human: npm i -g clawhub && clawhub login (GitHub)",
-        "approve: clawhub skill publish ./<skill>"
+        "claude: put the signup URL in the skill's setup steps; declare metadata.openclaw.requires.bins/env for every binary or env var the scripts use (the scan flags mismatches); each skill folder must work alone",
+        "human: npx -y clawhub login (device code, approve with GitHub)",
+        "approve: npx -y clawhub skill publish ./<skill> --slug <product>-<skill> --version 0.1.0 --source-repo <owner>/<repo> --source-path <path> (one per skill; --dry-run first)"
       ],
-      "notes": "Malicious skills were found on ClawHub in Feb 2026; keep the source public and say so.",
-      "source": "thread",
-      "verified": "no"
+      "notes": "One listing per skill folder, so a skill that reads files from a sibling needs a fallback. Prefix slugs with the product name. Check state with clawhub inspect <slug>. Malicious skills were found on ClawHub in Feb 2026; keep the source public.",
+      "source": "thread + used 2026-11-07",
+      "verified": "yes"
     },
     {
       "id": "hermes",
