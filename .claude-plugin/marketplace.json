@@ -1,0 +1,14 @@
+{
+  "name": "visibility",
+  "owner": { "name": "Oren Segal" },
+  "metadata": { "description": "Get a product listed on agent, integration and extension marketplaces." },
+  "plugins": [
+    {
+      "name": "visibility",
+      "source": "./",
+      "description": "Asset-aware visibility plan plus gated, one-platform-at-a-time registration on MCP, skill, automation, extension and API marketplaces.",
+      "version": "0.1.0",
+      "license": "MIT"
+    }
+  ]
+}
