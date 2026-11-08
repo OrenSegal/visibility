@@ -338,7 +338,7 @@
         "human: npx -y clawhub login (device code, approve with GitHub)",
         "approve: npx -y clawhub skill publish ./<skill> --slug <product>-<skill> --version 0.1.0 --source-repo <owner>/<repo> --source-path <path> (one per skill; --dry-run first)"
       ],
-      "notes": "One listing per skill folder, so a skill that reads files from a sibling needs a fallback. Prefix slugs with the product name. Check state with clawhub inspect <slug>. Malicious skills were found on ClawHub in Feb 2026; keep the source public.",
+      "notes": "One listing per skill folder, so a skill that reads files from a sibling needs a fallback. Prefix slugs with the product name. Check state with clawhub inspect <slug>. Malicious skills were found on ClawHub in Feb 2026; keep the source public. Publish from a clean `git archive` export of the pushed commit (local __pycache__ otherwise uploads), excluding any .claude-plugin/ in the skill folder: with a plugin.json present the CLI refuses with 'This looks like a plugin' (observed 2026-11-08). Pass --owner and --source-repo/--source-commit/--source-path so the listing records the repo.",
       "source": "thread + used 2026-11-07",
       "verified": "yes"
     },
