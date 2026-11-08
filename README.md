@@ -29,6 +29,8 @@ claude plugin install visibility@visibility
 
 Locally: `claude plugin marketplace add ~/Documents/GitHub/visibility`.
 
+Gemini CLI: `gemini extensions install https://github.com/OrenSegal/visibility`. Other agents: `npx skills add OrenSegal/visibility`.
+
 ## Extend
 
 Add a platform: one object in `catalog.json`, using asset ids from `ASSETS`; add an asset: one `ASSETS` entry and, if a file can prove it, one branch in `detect`. Then run the checks in `AGENTS.md`.
