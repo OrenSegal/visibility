@@ -7,7 +7,7 @@
       "name": "visibility",
       "source": "./",
       "description": "Asset-aware visibility plan plus gated, one-platform-at-a-time registration on MCP, skill, automation, extension and API marketplaces.",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "license": "MIT"
     }
   ]

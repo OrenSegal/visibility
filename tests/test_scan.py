@@ -1,4 +1,5 @@
 import json
+import re
 import os
 import subprocess
 import sys
@@ -79,6 +80,18 @@ class ScanTest(unittest.TestCase):
                 self.assertEqual(scan.check(scan.load_catalog()), ["recipes/nope.md: not an asset or platform id"])
             finally:
                 scan.RECIPES = old
+
+    def test_fallback_urls_are_pinned_to_a_real_commit(self):
+        import glob
+        root = os.path.join(os.path.dirname(__file__), "..")
+        urls = []
+        for f in glob.glob(os.path.join(root, "skills", "*", "SKILL.md")):
+            urls += re.findall(r"https://raw\.githubusercontent\.com/OrenSegal/visibility/([^/\s]+)/", open(f).read())
+        self.assertTrue(urls)
+        for ref in urls:
+            self.assertRegex(ref, r"^[0-9a-f]{40}$", "fallback must pin a full commit sha, not a branch")
+            r = subprocess.run(["git", "-C", root, "cat-file", "-e", ref + "^{commit}"], capture_output=True)
+            self.assertEqual(r.returncode, 0, f"pinned commit {ref} not in this repo")
 
     def test_rejects_unknown_declared_asset(self):
         r = subprocess.run([sys.executable, SCAN, ".", "--have", "nope"], capture_output=True, text=True)
