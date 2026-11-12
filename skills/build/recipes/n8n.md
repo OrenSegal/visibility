@@ -8,7 +8,7 @@ source: https://docs.n8n.io/integrations/creating-nodes/build/n8n-node/, https:/
 An `n8n-nodes-<product>` package with one credential (the product's API key) and one node whose operations map to the 2-4 main API actions (create/get/list...), built declaratively from the existing API docs/OpenAPI. No trigger unless the product already has webhooks (triggers must be programmatic style).
 
 ## Scaffold
-`npm create @n8n/node@latest`; CLI `n8n-node` subcommands: `new`, `build`, `dev`, `lint`, `release` (`release` uses release-it: build, lint, changelog, git tag, GitHub release, npm publish after `npm login` -- a local publish, which verification no longer accepts).
+`npm create @n8n/node@0.56.2`; CLI `n8n-node` subcommands: `new`, `build`, `dev`, `lint`, `release` (`release` uses release-it: build, lint, changelog, git tag, GitHub release, npm publish after `npm login` -- a local publish, which verification no longer accepts).
 
 ## Fields the listings check
 - `package.json`: `name` starts with `n8n-nodes-` or `@<scope>/n8n-nodes-`; `keywords` include `n8n-community-node-package`; nodes and credentials listed under the `n8n` attribute; `license` MIT; `repository` URL matches the public GitHub repo.
@@ -19,13 +19,13 @@ An `n8n-nodes-<product>` package with one credential (the product's API key) and
 - Review: up to four weeks.
 
 ## Steps
-claude: `npm create @n8n/node@latest`; write the credential (API key header) and the node operations from the OpenAPI/docs
+approve: `npm create @n8n/node@0.56.2` (downloads the scaffold); write the credential (API key header) and the node operations from the OpenAPI/docs
 claude: set package.json fields above; remove any runtime dependencies
 claude: add `.github/workflows/publish.yml` (tag trigger, `permissions: id-token: write, contents: read`, Node 24, `npm ci`, `npm run build`, `npm publish`) per npm trusted publishing
 claude: `npm run lint` (n8n-node lint) and `npm run build`
 human: npm account; configure the npm Trusted Publisher for the repo + workflow filename (first publish of a new package may need to be manual; unconfirmed)
 approve: push and tag so Actions publishes with provenance
-claude: `npx @n8n/scan-community-package n8n-nodes-<product>` passes against the published package
+approve: `npx @n8n/scan-community-package@0.43.0 n8n-nodes-<product>` (downloads the scanner); it passes against the published package
 human: sign in at https://creators.n8n.io/nodes and submit for verification
 human: record the uncut demo on self-hosted n8n if the portal asks: install the exact version, add the credential, run each operation, use it as an AI agent tool
 

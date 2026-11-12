@@ -9,7 +9,7 @@ One `openapi.yaml`/`openapi.json` (3.1 where the framework supports it) generate
 
 ## Scaffold
 - FastAPI: built in. Served at `/openapi.json` (`openapi_url`); default `openapi_version` is `3.1.0`. Customize title/version/summary via `fastapi.openapi.utils.get_openapi(title=, version=, summary=, description=, routes=app.routes)` assigned to `app.openapi`.
-- Hono: `npm i hono zod @hono/zod-openapi`; define routes with `createRoute` + `OpenAPIHono`; serve 3.1 with `app.doc31('/docs', { openapi: '3.1.0', info: { title, version } })` or get the object with `getOpenAPI31Document(config)`. (`app.doc` emits the 3.0 config shown on hono.dev.)
+- Hono: `npm i hono@4.13.18 zod@4.6.7 @hono/zod-openapi@1.6.3`; define routes with `createRoute` + `OpenAPIHono`; serve 3.1 with `app.doc31('/docs', { openapi: '3.1.0', info: { title, version } })` or get the object with `getOpenAPI31Document(config)`. (`app.doc` emits the 3.0 config shown on hono.dev.)
 - Rails: rswag (`gem 'rswag'` or `rswag-api` + `rswag-ui` + `rswag-specs` in `:development, :test`), `rails g rswag:install`, write request specs, `rake rswag:specs:swaggerize` (alias `rake rswag`); output under `config.openapi_root` (e.g. `openapi/v1/openapi.json`). README documents OpenAPI 3.0 only; 3.1 output is unconfirmed.
 - Express / Next.js: no official generator on the pages loaded (unconfirmed). Smallest path: hand-write the spec from the route files, or use Hono's underlying zod-to-openapi library if the routes already use zod (unconfirmed).
 
@@ -27,4 +27,4 @@ approve: commit and publish it at a stable public URL (e.g. `https://<docs-domai
 Contract tests that the spec matches real responses -> mattpocock-skills:tdd.
 
 ## Verify locally
-`npx @redocly/cli lint openapi.yaml` (docs show `redocly lint <apis>...`; default ruleset `recommended`, stricter: `--extends=recommended-strict`; the `npx @redocly/cli` package invocation itself is unconfirmed on that page). FastAPI: `curl localhost:8000/openapi.json`.
+`npx @redocly/cli@2.78.0 lint openapi.yaml` (docs show `redocly lint <apis>...`; default ruleset `recommended`, stricter: `--extends=recommended-strict`; the `npx @redocly/cli@2.78.0` package invocation itself is unconfirmed on that page). FastAPI: `curl localhost:8000/openapi.json`.
