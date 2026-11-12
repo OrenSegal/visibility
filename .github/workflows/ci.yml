@@ -1,0 +1,31 @@
+name: ci
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {python: "3.9", os: ubuntu-22.04}  # setup-python has no 3.9 build for newer images
+          - {python: "3.x", os: ubuntu-latest}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # a test checks that the pinned fallback commit exists in history
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - run: python3 skills/plan/scripts/scan.py --check
+      - run: python3 -m unittest discover tests
+  plugin:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g @anthropic-ai/claude-code
+      - run: claude plugin validate .
