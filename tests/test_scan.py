@@ -139,6 +139,53 @@ class ScanTest(unittest.TestCase):
         self.assertNotEqual(r.returncode, 0)
         self.assertIn("unknown asset", r.stderr)
 
+    def test_verified_yes_needs_an_observed_link(self):
+        row = {"id": "x", "name": "X", "category": "mcp", "submit": "u", "requires": ["github-public"], "cost": "free",
+               "review": "none", "link": "unchecked", "effort": "minutes", "source": "s", "verified": "yes",
+               "steps": ["human: sign up"]}
+        errors = lambda r: [e for e in scan.check([r]) if e.startswith("x:")]
+        self.assertEqual(errors(row), ["x: verified is yes but link is unchecked; use flow until the listing's link is observed"])
+        self.assertEqual(errors({**row, "verified": "flow"}), [])
+        self.assertEqual(errors({**row, "link": "rel=ugc nofollow (observed)"}), [])
+
+    def test_unknown_dr_ranks_after_known_and_prints_unknown(self):
+        row = lambda i, dr, effort: {"id": i, "name": i, "category": "mcp", "submit": "u", "requires": [], "cost": "free",
+                                     "review": "none", "link": "l", "effort": effort, "source": "s", "verified": "no",
+                                     "dr": dr, "steps": ["human: x"]}
+        cat = [row("unknown-fast", None, "minutes"), row("low", 20, "hours"), row("unknown-slow", None, "days"), row("high", 90, "hours")]
+        eligible, _, _ = scan.route(set(), cat)
+        self.assertEqual([p["id"] for p, _ in eligible], ["high", "low", "unknown-fast", "unknown-slow"])
+        with tempfile.TemporaryDirectory() as d:
+            md, _ = scan.report(d, set(), cat)
+        self.assertIn("| `unknown-fast` unknown-fast | unknown |", md)
+
+    def test_linkcheck_separates_dead_from_blocked(self):
+        import http.server
+        import importlib.util
+        import threading
+        spec = importlib.util.spec_from_file_location(
+            "linkcheck", os.path.join(os.path.dirname(__file__), "..", ".github", "linkcheck.py"))
+        linkcheck = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(linkcheck)
+
+        class Handler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(int(self.path.strip("/")))
+                self.end_headers()
+
+            def log_message(self, *args):
+                pass
+
+        server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        try:
+            base = f"http://127.0.0.1:{server.server_port}/"
+            kinds = {code: linkcheck.classify(linkcheck.status(base + str(code))) for code in (200, 404, 410, 403, 429)}
+        finally:
+            server.shutdown()
+        self.assertEqual(kinds, {200: "ok", 404: "dead", 410: "dead", 403: "blocked", 429: "blocked"})
+        self.assertEqual(linkcheck.classify(linkcheck.status("http://127.0.0.1:1/")), "unreachable")
+
 
 if __name__ == "__main__":
     unittest.main()

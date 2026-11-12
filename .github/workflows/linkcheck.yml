@@ -1,0 +1,15 @@
+name: linkcheck
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+  pull_request:
+    paths: [skills/plan/catalog.json, .github/linkcheck.py, .github/workflows/linkcheck.yml]
+permissions:
+  contents: read
+jobs:
+  submit-urls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 .github/linkcheck.py
