@@ -35,7 +35,7 @@ Run `python3 scripts/scan.py <path>`. It detects the file-provable assets. For e
 
 Write `.visibility/PLAN.md`:
 
-1. **Now**: eligible rows, ranked by the scan (DR over effort). For each: what Claude prepares, what the user must do (`human:` steps), cost, and `verified: no` rows flagged "re-check the live page first". Rows with no DR rank as if DR 50; show them as "DR unknown", never as a measured figure.
+1. **Now**: eligible rows, ranked by the scan (DR over effort). For each: what Claude prepares, what the user must do (`human:` steps), cost, and `verified: no` rows flagged "re-check the live page first". Rows with no DR come after the rows that have one, ordered by effort; show them as "DR unknown", and every DR as claimed, never as a measured figure. `verified: flow` rows get "link not checked".
 2. **Build next**: the scan's "one asset away" list, as a recommendation of at most two assets, with what building each takes. Assets marked with a recipe are built by `/visibility:build <asset>`; others via `mcp-server-dev:build-mcp-server` or `anthropic-skills:mcp-builder` (MCP), `anthropic-skills:skill-creator` (SKILL.md). Only recommend an asset that serves real users of this product; a listing is not a reason to build something off-brand.
 3. **Generic directories**: launch, AI, SaaS and review directories (Product Hunt, TAAFT, G2, MCP.so...) belong to `marketingskills:directory-submissions`. Point to it; do not list them here.
 4. **Earn**: if the scan's "Earn now" table is not empty, one line pointing to `/visibility:monetize`; do not rank channels here.

@@ -226,12 +226,13 @@ def route(have, catalog):
     for p in catalog:
         missing = [a for a in p["requires"] if not set(a.split("|")) & have]  # "a|b" = either asset
         (eligible if not missing else near if len(missing) == 1 else far).append((p, missing))
-    score = lambda pm: -(pm[0].get("dr") or 50) / EFFORT.get(pm[0]["effort"], 4)
-    eligible.sort(key=score)
+    # rows with a claimed DR first, by DR over effort; rows with none after them, by effort: an unknown is not a 50
+    effort = lambda p: EFFORT.get(p["effort"], 4)
+    eligible.sort(key=lambda pm: (not pm[0].get("dr"), -(pm[0].get("dr") or 0) / effort(pm[0]), effort(pm[0])))
     unlocks = {}
     for p, missing in near:
         unlocks.setdefault(missing[0], []).append(p)
-    ranked = sorted(unlocks.items(), key=lambda kv: -sum(p.get("dr") or 50 for p in kv[1]))
+    ranked = sorted(unlocks.items(), key=lambda kv: (-sum(p.get("dr") or 0 for p in kv[1]), -len(kv[1])))
     return eligible, ranked, far
 
 
@@ -254,7 +255,7 @@ def report(root, have_extra, catalog):
     out += ["", f"## Eligible now ({len(listed)})", "",
             "| Platform | DR (claimed) | Effort | Cost | Link | Verified |", "|---|---|---|---|---|---|"]
     for p, _ in listed:
-        out.append(f"| `{p['id']}` {p['name']} | {p.get('dr') or '?'} | {p['effort']} | {p['cost']} "
+        out.append(f"| `{p['id']}` {p['name']} | {p.get('dr') or 'unknown'} | {p['effort']} | {p['cost']} "
                    f"| {p['link']} | {p['verified']} |")
     out += ["", f"## Earn now ({len(earn)})", "", "| Channel | Revenue | Effort | Verified |", "|---|---|---|---|"]
     for p, _ in earn:
@@ -282,8 +283,10 @@ def check(catalog):
         errors += [f"{where}: unknown asset {a}" for r in p.get("requires", []) for a in r.split("|") if a not in ASSETS]
         if p.get("effort") not in EFFORT:
             errors.append(f"{where}: effort must be one of {', '.join(EFFORT)}")
-        if p.get("verified") not in ("yes", "no"):
-            errors.append(f"{where}: verified must be yes or no")
+        if p.get("verified") not in ("yes", "flow", "no"):
+            errors.append(f"{where}: verified must be yes, flow or no")
+        if p.get("verified") == "yes" and str(p.get("link", "")).startswith("unchecked"):
+            errors.append(f"{where}: verified is yes but link is unchecked; use flow until the listing's link is observed")
         if p.get("category") == "monetize" and not p.get("revenue"):
             errors.append(f"{where}: monetize rows need revenue (fee, rev share, payout minimum)")
         if not (p.get("steps") or p.get("see")):
