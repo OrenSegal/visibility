@@ -10,7 +10,7 @@ metadata:
       bins: [python3, git]
 ---
 
-Find the channels in the visibility catalog that pay, rank them, and set one up. The channels are catalog rows with `category: "monetize"`, each with a `revenue` line (platform fee or revenue share, payout minimum). The catalog lives in `../plan/catalog.json` (resolve from this file's directory). If this skill was installed alone, read the pinned revision at https://raw.githubusercontent.com/OrenSegal/visibility/1ebf070393e033ff49ccab6f194c3a39ab072758/skills/plan/catalog.json (not the default branch).
+Find the channels in the visibility catalog that pay, rank them, and set one up. The channels are catalog rows with `category: "monetize"`, each with a `revenue` line (platform fee or revenue share, payout minimum). The catalog lives in `../plan/catalog.json` (resolve from this file's directory). If this skill was installed alone, read the pinned revision at https://raw.githubusercontent.com/OrenSegal/visibility/1478fbd3497cdac199bdec02b8119188fdc29083/skills/plan/catalog.json (not the default branch).
 
 What to charge, how to package plans and how to write the paywall belong elsewhere: `marketingskills:pricing`, `marketingskills:paywalls` and `marketingskills:offers` if installed. This skill only decides which channels and in what order.
 
