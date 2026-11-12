@@ -73,6 +73,9 @@ ASSETS = {
     "apple-dev":      ("ask", "an Apple Developer Program membership"),
 }
 EFFORT = {"minutes": 1, "hours": 2, "days": 4, "weeks": 8}
+# AGENTS.md: accounts, payment, credentials and form submission are always human: steps. Words after "/" are URL paths.
+HUMAN_ONLY = re.compile(r"(?<![/\w-])(sign[ -]?in|log[ -]?in|submit|pay|token|password|credentials?|portal"
+                        r"|partner center)(?![\w-])", re.I)
 REQUIRED = ("id", "name", "category", "submit", "requires", "cost", "review", "link", "effort", "source", "verified")
 
 
@@ -291,6 +294,9 @@ def check(catalog):
         for s in p.get("steps", []):
             if not re.match(r"^(claude|human|approve): ", s):
                 errors.append(f"{where}: step must start with claude:/human:/approve: -> {s[:40]}")
+            elif not s.startswith("human:") and HUMAN_ONLY.search(s):
+                errors.append(f"{where}: '{HUMAN_ONLY.search(s).group(0)}' in a {s.split(':')[0]}: step; signing in, "
+                              f"submitting, paying and handling credentials are human: steps -> {s[:60]}")
     ids |= set(ASSETS)
     errors += [f"recipes/{r}.md: not an asset or platform id" for r in sorted(recipes() - ids)]
     return errors
