@@ -8,7 +8,7 @@ metadata:
     homepage: https://github.com/OrenSegal/visibility
 ---
 
-Get this project listed on one platform. The platform's row lives in `../plan/catalog.json` (resolve from this file's directory); if this skill was installed without its `plan` sibling, read the catalog pinned at https://raw.githubusercontent.com/OrenSegal/visibility/1ebf070393e033ff49ccab6f194c3a39ab072758/skills/plan/catalog.json instead (a reviewed revision, not the default branch; say which revision you used). If `.visibility/PLAN.md` is missing, run the scan from `../plan/SKILL.md` steps 1-2 first. If the row's `requires` are not all met, stop and say which asset is missing and how to build it.
+Get this project listed on one platform. The platform's row lives in `../plan/catalog.json` (resolve from this file's directory); if this skill was installed without its `plan` sibling, read the catalog pinned at https://raw.githubusercontent.com/OrenSegal/visibility/1478fbd3497cdac199bdec02b8119188fdc29083/skills/plan/catalog.json instead (a reviewed revision, not the default branch; say which revision you used). If `.visibility/PLAN.md` is missing, run the scan from `../plan/SKILL.md` steps 1-2 first. If the row's `requires` are not all met, stop and say which asset is missing and how to build it.
 
 ## Rules
 
