@@ -33,4 +33,4 @@ approve: deploy the challenge route
 human: wait for the tool scan, resolve Issues, fill Review details (credentials, video URL, cases), submit; choose when to publish after approval
 
 ## Verify locally
-`npx @modelcontextprotocol/inspector@latest` completes OAuth and lists tools with all three hints; `curl https://<host>/.well-known/openai-apps-challenge` returns only the token; run the 8 cases in ChatGPT developer mode before submitting (developer mode not described on the pages loaded, unconfirmed).
+`npx @modelcontextprotocol/inspector@2.15.0` completes OAuth and lists tools with all three hints; `curl https://<host>/.well-known/openai-apps-challenge` returns only the token; run the 8 cases in ChatGPT developer mode before submitting (developer mode not described on the pages loaded, unconfirmed).

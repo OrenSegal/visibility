@@ -93,6 +93,47 @@ class ScanTest(unittest.TestCase):
             r = subprocess.run(["git", "-C", root, "cat-file", "-e", ref + "^{commit}"], capture_output=True)
             self.assertEqual(r.returncode, 0, f"pinned commit {ref} not in this repo")
 
+    def test_installs_are_pinned_and_never_a_claude_step(self):
+        import glob
+        root = os.path.join(os.path.dirname(__file__), "..")
+        cmd = re.compile(r"\b(?:npx|npm (?:create|i|install)|brew install|pip3? install|pipx run|uvx)\b[^`;|&(),]*")
+        pin = re.compile(r"^(?:@[\w.-]+/)?[\w.-]+@\d[\w.+-]*$")
+        lines = []  # (where, text)
+        for f in sorted(glob.glob(os.path.join(root, "skills", "*", "recipes", "*.md"))):
+            lines += [(os.path.basename(f) + ":" + str(i + 1), t) for i, t in enumerate(open(f).read().splitlines())]
+        for p in scan.load_catalog():
+            for k in ("steps", "artifacts", "notes"):
+                v = p.get(k) or []
+                lines += [(p["id"] + "." + k, t) for t in ([v] if isinstance(v, str) else v)]
+        bad = []
+        for where, text in lines:
+            if "@latest" in text or re.search(r"curl[^|]*\|\s*(ba)?sh", text):
+                bad.append(f"{where}: @latest or curl | sh")
+            for m in cmd.finditer(text):
+                toks = [t.strip("`'\"") for t in m.group(0).split()]
+                if toks[0] == "brew":
+                    if "brew info" not in text:
+                        bad.append(f"{where}: brew install needs a 'brew info' version check on the same line")
+                    continue
+                if toks[0] in ("pip", "pip3", "pipx", "uvx"):
+                    if not re.search(r"==|@\d", m.group(0)):
+                        bad.append(f"{where}: unpinned {toks[0]}")
+                    continue
+                if toks[:2] == ["npm", "create"] or toks[0] == "npx":
+                    names, i = [], 2 if toks[0] == "npm" else 1
+                    while i < len(toks) and toks[i] != "--":
+                        if toks[i] in ("--package", "-p") and i + 1 < len(toks):
+                            names.append(toks[i + 1]); i += 2; continue
+                        if not toks[i].startswith("-"):
+                            names.append(toks[i]); break
+                        i += 1
+                else:  # npm i / install: every named package
+                    names = [t for t in toks[2:] if not t.startswith("-") and t != "--"]
+                bad += [f"{where}: {n} is not pinned to an exact version" for n in names if not pin.match(n)]
+            if re.match(r"\s*claude: ", text) and cmd.search(text):
+                bad.append(f"{where}: an install command must be an approve: step")
+        self.assertEqual(bad, [])
+
     def test_rejects_unknown_declared_asset(self):
         r = subprocess.run([sys.executable, SCAN, ".", "--have", "nope"], capture_output=True, text=True)
         self.assertNotEqual(r.returncode, 0)

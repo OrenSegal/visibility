@@ -30,4 +30,4 @@ human: upload the zip to each store, fill listing (screenshots, icon) and privac
 approve: submit each store listing for review
 
 ## Verify locally
-`npm install --global web-ext`, then `web-ext lint` (manifest errors) and `web-ext run` (Firefox) / `web-ext run --target chromium`; load unpacked in chrome://extensions and run the one job with a test key.
+`npm install --global web-ext@10.8.0`, then `web-ext lint` (manifest errors) and `web-ext run` (Firefox) / `web-ext run --target chromium`; load unpacked in chrome://extensions and run the one job with a test key.

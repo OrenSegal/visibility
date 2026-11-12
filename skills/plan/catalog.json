@@ -22,7 +22,7 @@
       "steps": [
         "claude: confirm the server is either a published package (npm/PyPI/OCI) or a remote Streamable HTTP URL under remotes",
         "claude: write server.json (mcp-publisher init shape) and the package marker",
-        "human: brew install mcp-publisher",
+        "human: brew install mcp-publisher (compare brew info mcp-publisher with 1.8.9, checked 2026-11-12, first)",
         "human: prove the namespace: mcp-publisher login github (io.github.<user>/*), or for com.yourdomain/* add the DNS TXT record and run mcp-publisher login dns --domain <domain> --private-key <key>",
         "approve: mcp-publisher publish (versions are immutable)"
       ],
@@ -313,7 +313,7 @@
       "effort": "minutes",
       "steps": [
         "claude: write or check the SKILL.md (delegate to skill-creator)",
-        "approve: npx skills add <owner>/<repo> --skill '*' --agent claude-code -y from a scratch project dir (one install creates the page)"
+        "approve: npx skills@1.8.1 add <owner>/<repo> --skill '*' --agent claude-code -y from a scratch project dir (one install creates the page)"
       ],
       "source": "thread + used 2026-11-07",
       "verified": "yes",
@@ -335,8 +335,8 @@
       "effort": "minutes",
       "steps": [
         "claude: put the signup URL in the skill's setup steps; declare metadata.openclaw.requires.bins/env for every binary or env var the scripts use (the scan flags mismatches); each skill folder must work alone",
-        "human: npx -y clawhub login (device code, approve with GitHub)",
-        "approve: npx -y clawhub skill publish ./<skill> --slug <product>-<skill> --version 0.1.0 --source-repo <owner>/<repo> --source-path <path> (one per skill; --dry-run first)"
+        "human: npx -y clawhub@0.25.1 login (device code, approve with GitHub)",
+        "approve: npx -y clawhub@0.25.1 skill publish ./<skill> --slug <product>-<skill> --version 0.1.0 --source-repo <owner>/<repo> --source-path <path> (one per skill; --dry-run first)"
       ],
       "notes": "One listing per skill folder, so a skill that reads files from a sibling needs a fallback. Prefix slugs with the product name. Check state with clawhub inspect <slug>. Malicious skills were found on ClawHub in Feb 2026; keep the source public. Publish from a clean `git archive` export of the pushed commit (local __pycache__ otherwise uploads), excluding any .claude-plugin/ in the skill folder: with a plugin.json present the CLI refuses with 'This looks like a plugin' (observed 2026-11-08). Pass --owner and --source-repo/--source-commit/--source-path so the listing records the repo.",
       "source": "thread + used 2026-11-07",
@@ -686,7 +686,7 @@
       ],
       "steps": [
         "claude: generate llms.txt and .md page variants",
-        "claude: npx afdocs to score locally",
+        "approve: npx afdocs@0.23.0 to score locally (downloads the package)",
         "human: Score docs with the docs URL; optionally Request listing"
       ],
       "source": "thread",
@@ -957,7 +957,7 @@
       "steps": [
         "human: create a publisher with a Microsoft account",
         "human: set up Trusted Publishing (OIDC); global PATs retire 2026-12-01",
-        "approve: npx @vscode/vsce publish --oidc"
+        "approve: npx @vscode/vsce@4.1.0 publish --oidc"
       ],
       "source": "research 2026-11-07 (official page loaded)",
       "verified": "yes"
@@ -977,7 +977,7 @@
       "effort": "minutes",
       "steps": [
         "human: eclipse.org account with your GitHub username, sign the Publisher Agreement, create a token",
-        "approve: npx ovsx create-namespace <pub> -p <token> && npx ovsx publish -p <token>"
+        "approve: npx ovsx@1.4.0 create-namespace <pub> -p <token> && npx ovsx@1.4.0 publish -p <token>"
       ],
       "source": "research 2026-11-07 (official page loaded)",
       "verified": "yes"
@@ -1802,9 +1802,9 @@
       ],
       "steps": [
         "claude: add jsr.json (name, version, exports); ESM only; fix slow types",
-        "claude: run npx jsr publish --dry-run",
+        "approve: run npx jsr@0.14.3 publish --dry-run (downloads the package)",
         "human: create the scope and package at jsr.io/new",
-        "approve: npx jsr publish (or GitHub Actions OIDC for provenance)"
+        "approve: npx jsr@0.14.3 publish (or GitHub Actions OIDC for provenance)"
       ],
       "notes": "Complements npm for TS libraries; provenance only via GitHub Actions.",
       "source": "https://jsr.io/docs/publishing-packages (loaded 2026-11-08)",

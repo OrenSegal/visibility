@@ -9,7 +9,7 @@ A stdio (or remote) MCP server whose tools are thin wrappers over the 2-5 API en
 
 ## Scaffold
 - Server code: delegate (below); TypeScript or Python MCP SDK.
-- Registry metadata: `brew install mcp-publisher`, then `mcp-publisher init` ("Create a server.json file template").
+- Registry metadata: `brew install mcp-publisher` (Homebrew installs the current formula and cannot pin it: run `brew info mcp-publisher` first and compare with 1.8.9, the version checked 2026-11-12), then `mcp-publisher init` ("Create a server.json file template").
 
 ## Fields the listings check
 - `server.json` `$schema`: `https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json`
@@ -25,7 +25,7 @@ claude: add `mcpName` to package.json (or `mcp-name:` to the PyPI README) matchi
 claude: run `mcp-publisher init`, fill `description`, `version` (same as the package), `packages[]` with `transport` stdio and the API-key `environmentVariables`, or `remotes[]` for a hosted URL
 claude: run `mcp-publisher validate`
 approve: publish the package (npm publish / PyPI upload) at that exact version
-human: `brew install mcp-publisher`; `mcp-publisher login github` (personal namespace only; org namespaces need a PAT with read:org as an org Owner, or GitHub Actions OIDC)
+human: `brew install mcp-publisher` (compare `brew info mcp-publisher` with 1.8.9 first); `mcp-publisher login github` (personal namespace only; org namespaces need a PAT with read:org as an org Owner, or GitHub Actions OIDC)
 human: for a `com.<domain>/*` name instead: add the TXT record at the domain apex, then `mcp-publisher login dns --domain <domain> --private-key <YOUR_PRIVATE_KEY>`
 approve: `mcp-publisher publish` (registry versions are immutable)
 claude: `mcp-publisher status` to confirm the entry
@@ -34,4 +34,4 @@ claude: `mcp-publisher status` to confirm the entry
 Server code -> mcp-server-dev:build-mcp-server or anthropic-skills:mcp-builder. Tool tests -> mattpocock-skills:tdd.
 
 ## Verify locally
-`npx @modelcontextprotocol/inspector@latest` (connect to the server's start command or URL) lists tools and calls one against a test key; then `mcp-publisher validate` passes.
+`npx @modelcontextprotocol/inspector@2.15.0` (connect to the server's start command or URL) lists tools and calls one against a test key; then `mcp-publisher validate` passes.

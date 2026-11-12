@@ -8,8 +8,8 @@ source: https://developers.cloudflare.com/agents/guides/remote-mcp-server/, http
 The same 2-5 API-wrapper tools as `mcp-server`, served over Streamable HTTP at one public HTTPS path (`/mcp` or `/api/mcp`) on a platform the product already deploys to. Auth: OAuth if any target listing needs it (chatgpt-apps, manus -> see `mcp-oauth`); otherwise a bearer API key in the `Authorization` header. Never take the key in the query string.
 
 ## Scaffold
-- Cloudflare Workers (no existing host): `npm create cloudflare@latest -- remote-mcp-server-authless --template=cloudflare/ai/demos/remote-mcp-authless`; dev `npm start` (port 8788, endpoint `/mcp`); deploy `npx wrangler@latest deploy`. OAuth variant: an authorization-server Worker with `OAuthAuthorizationServer` + MCP handler wrapped in `OAuthResourceServer`; signed-in user via `getMcpAuthContext()`.
-- Existing Next.js on Vercel (Node 20+): `npm i mcp-handler@2.1.1 @modelcontextprotocol/server@2 zod@4`; route `app/api/mcp/route.ts` with `createMcpHandler(server => server.registerTool(...))`, `export { handler as GET, handler as POST }`. Auth: `withMcpAuth(handler, verifyToken, { required: true, requiredScopes, resourceMetadataPath: '/.well-known/oauth-protected-resource' })` (401 without token, 403 on missing scope) and `protectedResourceHandler({ authServerUrls, resourceUrl })` at `app/.well-known/oauth-protected-resource/route.ts`. `mcp-handler` verifies tokens; it does not issue them.
+- Cloudflare Workers (no existing host): `npm create cloudflare@2.74.11 -- remote-mcp-server-authless --template=cloudflare/ai/demos/remote-mcp-authless`; dev `npm start` (port 8788, endpoint `/mcp`); deploy `npx wrangler@4.161.0 deploy`. OAuth variant: an authorization-server Worker with `OAuthAuthorizationServer` + MCP handler wrapped in `OAuthResourceServer`; signed-in user via `getMcpAuthContext()`.
+- Existing Next.js on Vercel (Node 20+): `npm i mcp-handler@2.1.1 @modelcontextprotocol/server@2.4.0 zod@4.6.7`; route `app/api/mcp/route.ts` with `createMcpHandler(server => server.registerTool(...))`, `export { handler as GET, handler as POST }`. Auth: `withMcpAuth(handler, verifyToken, { required: true, requiredScopes, resourceMetadataPath: '/.well-known/oauth-protected-resource' })` (401 without token, 403 on missing scope) and `protectedResourceHandler({ authServerUrls, resourceUrl })` at `app/.well-known/oauth-protected-resource/route.ts`. `mcp-handler` verifies tokens; it does not issue them.
 
 ## Fields the listings check
 - Transport: Streamable HTTP (both docs); v2 `mcp-handler` dropped legacy HTTP+SSE.
@@ -22,7 +22,7 @@ claude: reuse the mcp-server tools; scaffold on the existing host (Vercel route)
 claude: auth: read `Authorization: Bearer <YOUR_API_KEY>` and pass it to the product API, or wire OAuth per mcp-oauth; return 401 when missing
 claude: write tool descriptions that say when to use each tool vs its siblings (Glama grades tool definitions)
 human: create/choose the hosting account and set env secrets
-approve: deploy (`npx wrangler@latest deploy` or git push to Vercel)
+approve: deploy (`npx wrangler@4.161.0 deploy` or git push to Vercel)
 claude: add a `remotes[]` entry (`type` streamable-http (unconfirmed value), `url`) to server.json and republish to the MCP Registry (see mcp-server)
 human: Glama: claim the connector, add a test profile with a test API key or OAuth sign-in
 
@@ -30,4 +30,4 @@ human: Glama: claim the connector, add a test profile with a test API key or OAu
 Tools -> mcp-server-dev:build-mcp-server or anthropic-skills:mcp-builder. Auth middleware tests -> mattpocock-skills:tdd.
 
 ## Verify locally
-`npx @modelcontextprotocol/inspector@latest` -> Streamable HTTP -> `http://localhost:3000/api/mcp` (or `:8788/mcp`) -> Connect -> List Tools -> call one. Then `curl -i -X POST https://<host>/mcp` without a token returns 401.
+`npx @modelcontextprotocol/inspector@2.15.0` -> Streamable HTTP -> `http://localhost:3000/api/mcp` (or `:8788/mcp`) -> Connect -> List Tools -> call one. Then `curl -i -X POST https://<host>/mcp` without a token returns 401.

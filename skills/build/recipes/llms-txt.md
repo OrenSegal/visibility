@@ -24,4 +24,4 @@ approve: deploy the docs
 human: buildwithfern.com/agent-score -> score the docs URL; optionally request listing
 
 ## Verify locally
-`npx afdocs check https://<docs-preview-url> --format scorecard` (Node 22+); `curl -sI https://<docs>/llms.txt` returns 200 and `curl https://<docs>/<page>.md` returns markdown.
+`npx afdocs@0.23.0 check https://<docs-preview-url> --format scorecard` (Node 22+); `curl -sI https://<docs>/llms.txt` returns 200 and `curl https://<docs>/<page>.md` returns markdown.
