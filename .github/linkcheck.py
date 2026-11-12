@@ -4,12 +4,13 @@
 Usage: linkcheck.py [catalog.json]
 
 dead        = 404 or 410: the row needs a look. Exit 1 if any.
-unreachable = no HTTP answer on two tries (DNS, TLS, timeout): the row, or this machine's network. Exit 1 if any.
+unreachable = no HTTP answer on two tries (DNS, timeout, refused): the row, or this machine's network. Exit 1 if any.
 blocked     = 401, 403, 429 and other statuses: a login or bot wall, which says nothing about the page.
 A 200 only means the URL answers; it does not show that the submission flow is unchanged.
 """
 import json
 import os
+import ssl
 import sys
 import urllib.error
 import urllib.request
@@ -20,9 +21,11 @@ HEADERS = {"User-Agent": "Mozilla/5.0 (catalog link check)", "Accept": "text/htm
 
 def status(url, timeout=20):
     """HTTP status after redirects (GET, since several sites answer HEAD differently), or 0 when nothing answers twice."""
-    for _ in range(2):
+    # second try without certificate checks: some hosts serve an incomplete chain, and this asks only whether the
+    # page answers; nothing is sent to it and nothing it returns is used
+    for context in (None, ssl._create_unverified_context()):
         try:
-            with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=timeout) as r:
+            with urllib.request.urlopen(urllib.request.Request(url, headers=HEADERS), timeout=timeout, context=context) as r:
                 return r.status
         except urllib.error.HTTPError as e:
             return e.code
