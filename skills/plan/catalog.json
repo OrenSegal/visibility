@@ -239,7 +239,7 @@
       ],
       "steps": [
         "claude: build the ZIP per recipes/chatgpt-apps.md and draft the 8 review cases from the MCP tool list",
-        "claude: serve the challenge token as plain text at https://<mcp-host>/.well-known/openai-apps-challenge",
+        "approve: deploy the challenge file as plain text at https://<mcp-host>/.well-known/openai-apps-challenge (it becomes public on the product's host)",
         "human: verify identity in OpenAI platform organization settings",
         "human: upload the ZIP at platform.openai.com/plugins (With MCP), enter reviewer credentials in Review details, attach the demo video URL, submit"
       ],
@@ -757,7 +757,7 @@
       "effort": "minutes",
       "steps": [
         "human: sign in with GitHub at claudemarketplaces.com/submit",
-        "approve: pick the type (Skill, MCP server, or Marketplace for a repo with .claude-plugin/marketplace.json), paste the repo URL, Submit for free (or Priority review $4, under 24h)"
+        "human: pick the type (Skill, MCP server, or Marketplace for a repo with .claude-plugin/marketplace.json), paste the repo URL, Submit for free (or Priority review $4, under 24h)"
       ],
       "source": "research + used 2026-11-07",
       "verified": "yes",
@@ -977,7 +977,7 @@
       "effort": "minutes",
       "steps": [
         "human: eclipse.org account with your GitHub username, sign the Publisher Agreement, create a token",
-        "approve: npx ovsx@1.4.0 create-namespace <pub> -p <token> && npx ovsx@1.4.0 publish -p <token>"
+        "human: run npx ovsx@1.4.0 create-namespace <pub> -p <token> && npx ovsx@1.4.0 publish -p <token> in your own shell, so the token stays out of the session"
       ],
       "source": "research 2026-11-07 (official page loaded)",
       "verified": "yes"
@@ -1412,7 +1412,8 @@
       "steps": [
         "claude: build the custom connector (apiDefinition.swagger.json + apiProperties.json) from the OpenAPI file",
         "human: test in a Power Platform environment",
-        "approve: independent publishers: PR to microsoft/PowerPlatformConnectors; verified publishers: submit via Partner Center"
+        "approve: independent publishers: open the PR to microsoft/PowerPlatformConnectors",
+        "human: verified publishers: submit via Partner Center"
       ],
       "notes": "Free for both verified (you own the API) and independent publishers. Auth must be OAuth2, API key, basic or anonymous. Also usable as tools in Copilot Studio; MCP servers have a separate certification. Lands as a Premium connector.",
       "source": "https://learn.microsoft.com/en-us/connectors/custom-connectors/submit-certification (loaded 2026-11-08)",
@@ -1436,7 +1437,8 @@
       "artifacts": null,
       "steps": [
         "human: create a Partner Center developer account and complete publisher verification",
-        "claude: validate the app package in the Teams Developer Portal and write test notes",
+        "claude: write the test notes",
+        "human: validate the app package in the Teams Developer Portal (signed in)",
         "human: submit through Partner Center and fix the validation report"
       ],
       "notes": "Apps can link to a transactable SaaS offer (see microsoft-marketplace). Channel-enabled apps need manifest 1.25+ since July 2026.",
