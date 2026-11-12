@@ -601,7 +601,7 @@
       "submit": "npm publish",
       "dr": 75,
       "requires": [
-        "public-api"
+        "npm-cli|public-api"
       ],
       "cost": "free",
       "review": "none",
@@ -612,7 +612,7 @@
         "package.json name, description, keywords, homepage, repository"
       ],
       "steps": [
-        "claude: build the CLI and fill in package.json",
+        "claude: build the CLI if the project has none (an API wrapper needs the public API) and fill in package.json",
         "human: npm login",
         "approve: npm publish --access public"
       ],
