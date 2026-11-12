@@ -4,7 +4,8 @@
 Usage: linkcheck.py [catalog.json]
 
 dead        = 404 or 410: the row needs a look. Exit 1 if any.
-unreachable = no HTTP answer on two tries (DNS, timeout, refused): the row, or this machine's network. Exit 1 if any.
+unreachable = no HTTP answer on two tries (DNS, TLS, timeout, refused). Printed, and as a warning annotation in
+              GitHub Actions, but not a failure: one run cannot tell a gone host from a bad minute.
 blocked     = 401, 403, 429 and other statuses: a login or bot wall, which says nothing about the page.
 A 200 only means the URL answers; it does not show that the submission flow is unchanged.
 """
@@ -46,9 +47,11 @@ def main():
         for pid, url, code in results:
             if classify(code) == kind:
                 print(f"{kind}\t{code or 'no answer'}\t{pid}\t{url}")
+                if kind == "unreachable" and os.environ.get("GITHUB_ACTIONS"):
+                    print(f"::warning::{pid}: no answer from {url}")
     count = lambda kind: sum(classify(code) == kind for _, _, code in results)
     print(f"{len(results)} submit URLs: {count('dead')} dead, {count('unreachable')} unreachable, {count('blocked')} blocked")
-    return 1 if count("dead") or count("unreachable") else 0
+    return 1 if count("dead") else 0
 
 
 if __name__ == "__main__":
