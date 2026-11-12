@@ -4,7 +4,7 @@ kind: asset
 unlocks: [npm-cli, homebrew-tap]
 source: https://docs.npmjs.com/cli/v11/configuring-npm/package-json, https://docs.npmjs.com/trusted-publishers, https://docs.npmjs.com/generating-provenance-statements (loaded 2026-11-08)
 ---
-Note: the catalog's `npm-cli` platform row lists `requires: [public-api]`, not this asset; `homebrew-tap` is the row that requires the `npm-cli` asset.
+Note: the catalog's `npm-cli` platform row requires this asset or a `public-api` to wrap; `homebrew-tap` also requires the `npm-cli` asset.
 
 ## Smallest version
 A CLI that wraps the product's public API: `<cli> login` saves the user's API key, then 2-4 commands map 1:1 to the most-used endpoints and print JSON or a short table. No new server features.

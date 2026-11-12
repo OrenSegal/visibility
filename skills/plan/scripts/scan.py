@@ -20,7 +20,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 CATALOG = os.path.join(os.path.dirname(HERE), "catalog.json")
 RECIPES = os.path.join(os.path.dirname(os.path.dirname(HERE)), "build", "recipes")
 SKIP = re.compile(r"(^|/)(node_modules|vendor|Pods|build|dist|\.build|DerivedData|\.dart_tool|\.next|target"
-                  r"|\.venv|venv|__pycache__|\.git|\.audit|\.visibility|_archive|_worktrees)(/|$)")
+                  r"|\.venv|venv|__pycache__|\.git|\.audit|\.visibility|_archive|_worktrees"
+                  r"|tests?|__tests__|fixtures?|__fixtures__|testdata)(/|$)")  # a fixture is not the product's asset
+BUILD_OUTPUT = {"build", "dist", "target"}  # skipped as build output unless git tracks files in them (skills/build)
 MAX_FILES = 20_000
 
 # asset -> (how it is known, description). "ask" assets are never detected, only declared with --have.
@@ -97,17 +99,30 @@ def load_catalog():
         return json.load(f)["platforms"]
 
 
+def tracked_dirs(root):
+    """Folders (relative to root) that hold files git tracks; empty outside a repo."""
+    try:
+        out = subprocess.run(["git", "-C", root, "ls-files", "-z"], capture_output=True, text=True, timeout=30).stdout
+    except (OSError, subprocess.SubprocessError):
+        return set()
+    return {f[:i] for f in out.split("\0") for i, c in enumerate(f) if c == "/"}
+
+
 def walk(root):
-    n = 0
+    """(relative path, full path) per file, then ("", None) once if MAX_FILES cut the walk short."""
+    n, tracked = 0, tracked_dirs(root)
     for dirpath, dirnames, filenames in os.walk(root):
         rel = os.path.relpath(dirpath, root).replace(os.sep, "/")
-        dirnames[:] = [d for d in dirnames if not SKIP.search(f"{rel}/{d}")]
+        here = "" if rel == "." else rel + "/"
+        dirnames[:] = [d for d in dirnames
+                       if not SKIP.search(d) or (d in BUILD_OUTPUT and here + d in tracked)]
         for d in dirnames:
             if d.endswith(".xcodeproj"):
                 yield ("" if rel == "." else rel + "/") + d, None
         for name in filenames:
             n += 1
             if n > MAX_FILES:  # shortcut: huge monorepos are sampled, not walked; raise MAX_FILES if a real one needs it
+                yield "", None
                 return
             yield ("" if rel == "." else rel + "/") + name, os.path.join(dirpath, name)
 
@@ -121,10 +136,13 @@ def detect(root):
 
     for rel, path in walk(root):
         base = rel.rsplit("/", 1)[-1]
-        if rel.endswith(".xcodeproj"):
+        if not rel:
+            found["truncated"] = f"stopped after {MAX_FILES} files; assets in the rest of the tree were not looked for"
+        elif rel.endswith(".xcodeproj"):
             hit("ios-app", rel)
         elif base == "SKILL.md":
-            hit("skill-md", rel)
+            if re.match(r"---\n(.*\n)*?name:.*\n(.*\n)*?---", read(path, 8192)):  # a skill has frontmatter with a name
+                hit("skill-md", rel)
         elif rel.endswith(".claude-plugin/plugin.json"):
             hit("claude-plugin", rel)
         elif base == "server.json" and "modelcontextprotocol" in read(path):
@@ -240,6 +258,9 @@ def report(root, have_extra, catalog):
     have = set(found) | set(have_extra)
     eligible, unlocks, far = route(have, catalog)
     out = [f"# {os.path.basename(os.path.abspath(root))}", "", "## Assets", ""]
+    truncated = found.pop("truncated", None)
+    if truncated:
+        out += [f"Incomplete scan: {truncated}.", ""]
     if "github-remote" in found:
         out.append(f"- [ ] `github-public`: {found.pop('github-remote')}")
     for a, (kind, desc) in ASSETS.items():
@@ -266,7 +287,7 @@ def report(root, have_extra, catalog):
         hint = f" (recipe: `/visibility:build {built[0]}`)" if built else ""
         out.append(f"- `{asset}` unlocks {len(ps)}{hint}: " + ", ".join(f"`{p['id']}`" for p in ps))
     out += ["", f"## Two or more assets away: {len(far)}", ""]
-    return "\n".join(out), {"root": root, "assets": {k: v for k, v in found.items() if k in ASSETS}, "declared": sorted(have_extra),
+    return "\n".join(out), {"root": root, "assets": {k: v for k, v in found.items() if k in ASSETS}, "declared": sorted(have_extra), "truncated": bool(truncated),
                             "eligible": [p["id"] for p, _ in listed], "earn": [p["id"] for p, _ in earn],
                             "unlocks": {a: [p["id"] for p in ps] for a, ps in unlocks}}
 
@@ -312,6 +333,9 @@ def main():
     bad = have - set(ASSETS)
     if bad:
         sys.exit(f"unknown asset(s): {', '.join(sorted(bad))}; known: {', '.join(ASSETS)}")
+    missing = [r for r in a.roots if not os.path.isdir(r)]
+    if missing:
+        ap.error(f"not a directory: {', '.join(missing)}")  # exits 2: a mistyped path is not a project with no assets
     results = [report(r, have, catalog) for r in a.roots]
     if a.json:
         print(json.dumps([j for _, j in results], indent=2))
