@@ -23,7 +23,7 @@ All are user-invoked. Nothing is published, paid for or submitted without you.
 | Generic launch/AI/SaaS directories, backlink verification, tracker format | `marketingskills:directory-submissions` (not duplicated here) |
 | Per-project state | `<project>/.visibility/` (PRODUCT.md, SCAN.md, PLAN.md, MONETIZE.md, LEDGER.csv; git-ignored) |
 
-Catalog rows marked `verified: no` come from secondhand sources; `register` re-checks the live page before using one. DR figures are as claimed by the source.
+Catalog rows marked `verified: no` come from secondhand sources; `register` re-checks the live page before using one. `verified: flow` means the submission flow was checked but the link the listing gives was not; `yes` means both were observed. DR figures are as claimed by the source and none was measured here; a row without one is shown as `unknown` and ranks after the rows that have one. `.github/linkcheck.py` reports `submit` URLs that no longer resolve and runs weekly.
 
 ## Install
 

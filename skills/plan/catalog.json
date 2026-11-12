@@ -1,5 +1,5 @@
 {
-  "about": "One row per platform. requires = asset ids from scripts/scan.py ASSETS (a|b means either). dr = claimed domain rating (unverified unless verified=yes). steps: claude = Claude does it locally; approve = Claude runs it after an explicit yes (publish, PR, upload); human = the user does it (accounts, payment, DNS, forms, email). see = pointer to the fact's other home instead of steps.",
+  "about": "One row per platform. requires = asset ids from scripts/scan.py ASSETS (a|b means either). dr = domain rating as claimed by the source, never measured here; null = unknown. verified: yes = the submission flow and the listing's link were both observed; flow = the flow was checked on the official page or by use, the link was not; no = secondhand. steps: claude = Claude does it locally; approve = Claude runs it after an explicit yes (publish, PR, upload); human = the user does it (accounts, payment, DNS, forms, email). see = pointer to the fact's other home instead of steps.",
   "platforms": [
     {
       "id": "mcp-registry",
@@ -34,7 +34,7 @@
       "id": "smithery",
       "name": "Smithery",
       "category": "mcp",
-      "submit": "https://smithery.ai/new",
+      "submit": "none found (https://smithery.ai/new returned 404 on 2026-11-12; see notes)",
       "listing": "smithery.ai/server/<name>",
       "dr": 80,
       "requires": [
@@ -53,7 +53,7 @@
         "human: if a submit path exists, sign in and submit the remote MCP URL"
       ],
       "source": "https://smithery.ai/future (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "no",
       "notes": "smithery.ai/future (loaded 2026-11-08): 'On October 31, 2026, we're shutting down Smithery's connection management services.' Smithery stays a public, non-proxied registry with 'a curated set of verified servers'; it does not say how new servers get listed, and smithery.ai/new returns 404. Old flow (thread): paste URL at /new, apiKey header param, TXT verification, badge."
     },
     {
@@ -271,7 +271,7 @@
       ],
       "notes": "The submission guide: 'Skills-only plugins don't need MCP review cases or a demo recording.' Same directory as chatgpt-apps.",
       "source": "https://developers.openai.com/apps-sdk/deploy/submission (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "cursor-directory",
@@ -1276,7 +1276,7 @@
       ],
       "notes": "Distinct from cursor.directory (community). Docs: all marketplace plugins must be open source. Publisher terms (search result) forbid charging users. A forum report says one submission waited 25+ days.",
       "source": "https://cursor.com/docs/plugins (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "cline-mcp-marketplace",
@@ -1333,7 +1333,7 @@
       ],
       "notes": "Docs say MCP-server extensions are being deprecated in favor of the MCP registry; publish there too. Good fit for language/theme/debugger extensions.",
       "source": "https://zed.dev/docs/extensions/publishing/prerequisites (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "kiro-powers",
@@ -1416,7 +1416,7 @@
       ],
       "notes": "Free for both verified (you own the API) and independent publishers. Auth must be OAuth2, API key, basic or anonymous. Also usable as tools in Copilot Studio; MCP servers have a separate certification. Lands as a Premium connector.",
       "source": "https://learn.microsoft.com/en-us/connectors/custom-connectors/submit-certification (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "teams-store",
@@ -1466,7 +1466,7 @@
       ],
       "notes": "Public vs private cannot be switched after publishing. OAuth verification for restricted scopes can add weeks.",
       "source": "https://developers.google.com/workspace/marketplace/how-to-publish (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "hubspot-marketplace",
@@ -1492,7 +1492,7 @@
       ],
       "notes": "Loaded page omits the App listing requirements page; HubSpot has historically required a minimum number of active installs before listing. Check before building.",
       "source": "https://developers.hubspot.com/docs/apps/developer-platform/list-apps/listing-your-app/listing-your-app (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "atlassian-marketplace",
@@ -1516,7 +1516,7 @@
       ],
       "notes": "Paid version: see atlassian-paid.",
       "source": "https://developer.atlassian.com/platform/marketplace/listing-forge-apps/ (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "monday-marketplace",
@@ -1541,7 +1541,7 @@
       ],
       "notes": "Apps built mainly with no-code tools or AI 'vibe code' are not eligible; clones get declined. Paid version: see monday-paid.",
       "source": "https://developer.monday.com/apps/docs/submit-your-app (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "zoom-marketplace",
@@ -1566,7 +1566,7 @@
       ],
       "notes": "Unlisted/beta options exist if public review is too heavy.",
       "source": "https://developers.zoom.us/docs/distribute/ (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "intercom-app-store",
@@ -1593,7 +1593,7 @@
       ],
       "notes": "No install minimum on the loaded page.",
       "source": "https://developers.intercom.com/docs/publish-to-the-app-store/review-publish-your-app (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "miro-marketplace",
@@ -1616,7 +1616,7 @@
       ],
       "notes": "Gated by partner acceptance; no self-serve path.",
       "source": "https://developers.miro.com/docs/marketplace-listing-guidelines (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "canva-apps",
@@ -1640,7 +1640,7 @@
       ],
       "notes": "",
       "source": "https://www.canva.dev/docs/apps/submitting-apps/ (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "webflow-apps",
@@ -1664,7 +1664,7 @@
       ],
       "notes": "Designer Extensions must be reviewable from source.",
       "source": "https://developers.webflow.com/apps/docs/publishing-your-app (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "framer-marketplace",
@@ -1687,7 +1687,7 @@
       ],
       "notes": "Loaded page says nothing about paid plugins.",
       "source": "https://www.framer.com/developers/publishing (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "ifttt",
@@ -1711,7 +1711,7 @@
       ],
       "notes": "Personal support emails fail review.",
       "source": "https://ifttt.com/docs (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "activepieces",
@@ -1735,7 +1735,7 @@
       ],
       "notes": "Merged pieces auto-publish to npm within minutes. Pieces are also exposed to MCP clients via Activepieces.",
       "source": "https://www.activepieces.com/docs/build-pieces/sharing-pieces/contribute (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "salesforce-appexchange",
@@ -1781,7 +1781,7 @@
       ],
       "notes": "Google-run; nothing to submit. Fix what the page shows (vulns, license) since it is what reviewers see.",
       "source": "https://docs.deps.dev/faq/ (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "jsr",
@@ -1808,7 +1808,7 @@
       ],
       "notes": "Complements npm for TS libraries; provenance only via GitHub Actions.",
       "source": "https://jsr.io/docs/publishing-packages (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "context7",
@@ -1834,7 +1834,7 @@
       ],
       "notes": "Feeds Context7 MCP used inside Cursor/Claude Code etc. Optional GitHub Action refreshes on push.",
       "source": "https://context7.com/docs/adding-libraries (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "flow"
     },
     {
       "id": "public-apis",
@@ -1906,7 +1906,7 @@
       ],
       "notes": "Store pages are public; agent payments supported for limited-permission Actors. Budget ~2h/week maintenance.",
       "source": "https://docs.apify.com/platform/actors/publishing/monetize (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "flow",
       "revenue": "Apify keeps 20%; your payout = revenue - 20% - platform usage; payout minimum/method not on loaded page"
     },
     {
@@ -1932,7 +1932,7 @@
       ],
       "notes": "Enterprise buyers can spend committed AWS budget.",
       "source": "https://docs.aws.amazon.com/marketplace/latest/userguide/listing-fees.html (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "flow",
       "revenue": "SaaS public offers 3%, AMI/container/ML 20%, private offers 3% (<$1M) down to 1.5%; CPPO +0.5%"
     },
     {
@@ -1958,7 +1958,7 @@
       ],
       "notes": "A listing-only 'Contact me' offer is an exposure play with no billing integration.",
       "source": "https://learn.microsoft.com/en-us/partner-center/marketplace-offers/marketplace-commercial-transaction-capabilities-and-considerations (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "flow",
       "revenue": "3% store service fee unless otherwise specified, deducted at payout; SaaS must be multitenant with Entra ID"
     },
     {
@@ -1983,7 +1983,7 @@
       ],
       "notes": "Supports SaaS, VMs, Kubernetes apps, containers, datasets and AI agents.",
       "source": "https://docs.cloud.google.com/marketplace/docs/partners/offer-products (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "flow",
       "revenue": "fee/revenue share not stated on loaded page; check pricing guides in Partner Network Hub"
     },
     {
@@ -2033,7 +2033,7 @@
       ],
       "notes": "Must reside in a supported region. Sponsor button shows on the repo via FUNDING.yml.",
       "source": "https://docs.github.com/en/sponsors/getting-started-with-github-sponsors/about-github-sponsors (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "flow",
       "revenue": "0% on personal-account sponsorships; up to 6% (3% card + 3% service) on org sponsorships; payout minimum not on loaded page"
     },
     {
@@ -2057,7 +2057,7 @@
       ],
       "notes": "Merchant of record; fits dev tools, license keys, GitHub repo access. Paid plans lower the rate.",
       "source": "https://polar.sh/docs/merchant-of-record/fees (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "flow",
       "revenue": "Starter 5%+50c, Pro $20/mo 3.8%+40c, Growth $100/mo 3.6%+35c; +1.5% non-US cards; $15/dispute; Stripe payout fees $2/mo + 0.25%+$0.25"
     },
     {
@@ -2081,7 +2081,7 @@
       ],
       "notes": "Merchant of record. Now part of Stripe ('Link, LLC f/k/a Lemon Squeezy'); banner mentions a 2026 Stripe Managed Payments update; check before choosing.",
       "source": "https://www.lemonsqueezy.com/pricing (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "flow",
       "revenue": "5% + 50c per transaction; extra fees on some non-US payments; no monthly fee"
     },
     {
@@ -2129,7 +2129,7 @@
       ],
       "notes": "Handles sales tax worldwide since 2025-01-01. Good for paid skills, prompt packs, templates.",
       "source": "https://gumroad.com/pricing (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "flow",
       "revenue": "10% + $0.50 direct sales, 30% on Discover sales; payout minimum not on loaded page"
     },
     {
@@ -2177,7 +2177,7 @@
       ],
       "notes": "Forge-only apps (no Connect modules, OAuth, Forge UI) qualify for the $1M incentive.",
       "source": "https://developer.atlassian.com/market/faqs/pricing-payment-billing (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "flow",
       "revenue": "Forge: 100% to you until $1M lifetime, then 83% (from 2026-10-01); Connect 75%; paid once $500 accrued, within 30 days after month end"
     },
     {
@@ -2202,7 +2202,7 @@
       ],
       "notes": "Sales-order deals carry a 35% share (terms page, search only).",
       "source": "https://developer.monday.com/apps/docs/subscriptions-payments-and-billing (loaded 2026-11-08)",
-      "verified": "yes",
+      "verified": "flow",
       "revenue": "85/15 after $200K lifetime revenue; Payoneer USD; paid up to 60 days after invoice approval"
     },
     {
@@ -2329,7 +2329,7 @@
       "id": "apilayer",
       "name": "APILayer Marketplace",
       "category": "monetize",
-      "submit": "https://apilayer.com/docs/article/provider-faq",
+      "submit": "APILayer provider application (https://apilayer.com/docs/article/provider-faq returned 404 on 2026-11-12)",
       "listing": "marketplace.apilayer.com/<api> page",
       "dr": null,
       "requires": [
@@ -2345,7 +2345,7 @@
         "human: set pricing and monthly payout (companies invoice APILayer)"
       ],
       "notes": "Commission conflicts across sources (handling fee vs 15%); learn it during review.",
-      "source": "https://apilayer.com/docs/article/provider-faq (search only, not loaded 2026-11-08)",
+      "source": "https://apilayer.com/docs/article/provider-faq (search only, not loaded 2026-11-08; 404 on 2026-11-12)",
       "verified": "no",
       "revenue": "split not published; monthly payouts"
     }
