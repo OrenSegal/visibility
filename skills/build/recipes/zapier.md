@@ -24,9 +24,9 @@ claude: map MCP tools / OpenAPI operations to one trigger and 1-3 actions; write
 human: developer.zapier.com account; Start a Zapier Integration; fill name, logo, homepage, audience=public, role, category
 human: configure API Key auth and the trigger/actions in the Platform UI from claude's specs
 human: create the reviewer test account on integration-testing@zapier.com (non-expiring, paid features on)
-human: build and turn on a test Zap per trigger/action until each has a successful run
+human: build and turn on a test Zap per trigger/action until each has a successful run, connected to the test account, never a real customer's: an action's test run creates, sends or changes real data in whatever account it is connected to
 human: add a teammate with a company-domain email as admin
 approve: submit for publishing review
 
 ## Verify locally
-No local command for Platform UI; the Platform UI auth test passes and each test Zap shows a successful run. claude can pre-check endpoints with `curl -H "<auth header>: <YOUR_API_KEY>" https://<api>/<endpoint>`.
+No local command for Platform UI; the Platform UI auth test passes and each test Zap shows a successful run. claude can pre-check read-only (GET) endpoints with `curl -H "<auth header>: <YOUR_API_KEY>" https://<api>/<endpoint>`, using the test account's key. Never call an action endpoint to check it: that changes live data.
