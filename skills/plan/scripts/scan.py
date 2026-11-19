@@ -15,6 +15,7 @@ import os
 import re
 import subprocess
 import sys
+import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CATALOG = os.path.join(os.path.dirname(HERE), "catalog.json")
@@ -27,7 +28,7 @@ MAX_FILES = 20_000
 
 # asset -> (how it is known, description). "ask" assets are never detected, only declared with --have.
 ASSETS = {
-    "github-public":  ("detect", "public GitHub repo (checked with gh)"),
+    "github-public":  ("detect", "public GitHub repo (checked with gh or the GitHub API)"),
     "skill-md":       ("detect", "an Agent Skill (SKILL.md)"),
     "claude-plugin":  ("detect", "a Claude Code plugin (.claude-plugin/plugin.json)"),
     "mcp-server":     ("detect", "MCP server code (MCP SDK dependency or server.json)"),
@@ -229,16 +230,31 @@ def detect(root):
     except (OSError, subprocess.SubprocessError):
         origin = ""
     if "github.com" in origin:
-        try:  # a github.com remote may be private; only gh can tell
-            private = subprocess.run(["gh", "repo", "view", origin, "--json", "isPrivate", "-q", ".isPrivate"],
-                                     capture_output=True, text=True, timeout=10).stdout.strip()
-        except (OSError, subprocess.SubprocessError):
-            private = ""
-        if private == "false":
+        if is_public(origin):
             hit("github-public", origin)
         else:
             found["github-remote"] = f"{origin} (private or unknown; not counted as public)"
     return found
+
+
+def is_public(origin):
+    """True only when GitHub says the repo is public: gh first, then the unauthenticated API (a private repo 404s)."""
+    try:
+        if subprocess.run(["gh", "repo", "view", origin, "--json", "isPrivate", "-q", ".isPrivate"],
+                          capture_output=True, text=True, timeout=10).stdout.strip() == "false":
+            return True
+    except (OSError, subprocess.SubprocessError):
+        pass
+    m = re.search(r"github\.com[:/]([\w.-]+)/([\w.-]+?)(?:\.git)?/?$", origin)
+    if not m:
+        return False
+    try:
+        req = urllib.request.Request(f"https://api.github.com/repos/{m[1]}/{m[2]}",
+                                     headers={"Accept": "application/vnd.github+json", "User-Agent": "visibility-scan"})
+        with urllib.request.urlopen(req, timeout=10) as r:
+            return json.load(r).get("private") is False
+    except (OSError, ValueError):
+        return False
 
 
 def route(have, catalog):

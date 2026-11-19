@@ -81,6 +81,25 @@ class ScanTest(unittest.TestCase):
             finally:
                 scan.RECIPES = old
 
+    def test_public_repo_is_detected_without_gh(self):
+        import io
+        from unittest import mock
+        calls = []
+
+        def fake_urlopen(req, timeout):
+            calls.append(req.full_url)
+            if "secret" in req.full_url:
+                raise OSError("404")
+            return io.StringIO('{"private": false}')
+
+        with mock.patch.object(scan.subprocess, "run", side_effect=OSError("no gh")), \
+                mock.patch.object(scan.urllib.request, "urlopen", fake_urlopen):
+            self.assertTrue(scan.is_public("https://github.com/acme/tool.git"))
+            self.assertTrue(scan.is_public("git@github.com:acme/tool.git"))
+            self.assertFalse(scan.is_public("https://github.com/acme/secret"))
+            self.assertFalse(scan.is_public("https://example.com/acme/tool"))
+        self.assertEqual(calls[:2], ["https://api.github.com/repos/acme/tool"] * 2)
+
     def test_fallback_urls_are_pinned_to_a_real_commit(self):
         import glob
         root = os.path.join(os.path.dirname(__file__), "..")
