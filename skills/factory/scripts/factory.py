@@ -132,6 +132,9 @@ def plan(pf, catalog, ledger, today, detect=scan.detect, get=None):
         have = {a for a in detect(r["path"]) if a in scan.ASSETS} | set(r["have"])
         eligible, _, _ = scan.route(have, catalog)
         pkg = package_notes(r["repo"], r["path"], get) if get else {}
+        for row in ledger:  # a platform the user put on skip leaves the work list as skipped, not gone
+            if row["repo"] == r["repo"] and row["platform"] in r["skip"] and row["status"] == "planned":
+                row["status"], row["notes"], row["date"] = "skipped", "on the portfolio's skip list", today
         for p, _ in eligible:
             if p["id"] in r["skip"]:
                 continue

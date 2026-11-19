@@ -63,6 +63,13 @@ class FactoryTest(unittest.TestCase):
         _, added, _ = factory.plan(self.pf, CATALOG, [], "2026-11-19", self.detect)
         self.assertNotIn(("me/b", "dir"), {(r["repo"], r["platform"]) for r in added})
 
+    def test_skipping_a_planned_row_marks_it_skipped_not_gone(self):
+        ledger, _, _ = factory.plan(self.pf, CATALOG, [], "2026-11-19", self.detect)
+        self.pf["repos"][1]["skip"] = ["dir"]
+        ledger, _, gone = factory.plan(self.pf, CATALOG, ledger, "2026-11-26", self.detect)
+        self.assertEqual(next(r for r in ledger if r["repo"] == "me/b" and r["platform"] == "dir")["status"], "skipped")
+        self.assertEqual(gone, [])
+
     def test_queue_batches_by_kind_and_signs_in_once_per_platform(self):
         ledger, added, gone = factory.plan(self.pf, CATALOG, [], "2026-11-19", self.detect)
         q = factory.queue(self.pf, CATALOG, ledger, added, gone, "2026-11-19")
