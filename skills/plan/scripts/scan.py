@@ -224,7 +224,7 @@ def detect(root):
             if re.search(r"""["'](mcp|fastmcp)[\[>=<~" ']""", text):
                 hit("mcp-server", rel)
         elif base.startswith("requirements") and base.endswith(".txt"):
-            if re.search(r"^(mcp|fastmcp)\b", read(path), re.M):
+            if re.search(r"^(mcp|fastmcp)(\[[^\]]*\])?[ \t]*([=<>~!;#@]|$)", read(path), re.M):  # not mcp-proxy
                 hit("mcp-server", rel)
     try:
         origin = subprocess.run(["git", "-C", root, "remote", "get-url", "origin"],

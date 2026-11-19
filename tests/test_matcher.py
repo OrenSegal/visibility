@@ -35,6 +35,15 @@ class MatcherTest(unittest.TestCase):
         self.assertTrue({"npm-package", "npm-cli", "raycast-ext"} <= set(found))
         self.assertNotIn("vscode-ext", found)
 
+    def test_only_the_mcp_sdk_itself_proves_an_mcp_server(self):
+        mcp = lambda files: "mcp-server" in scan.detect(self.tree(files))
+        for line in ("mcp", "mcp==1.2.0", "mcp[cli]>=1.2", "fastmcp ~= 2.0", "mcp ; python_version > '3.9'", "mcp # sdk"):
+            self.assertTrue(mcp({"requirements.txt": "requests\n" + line + "\n"}), line)
+        for line in ("mcp-proxy==1.0", "mcp.client==0.1", "fastmcp-utils"):
+            self.assertFalse(mcp({"requirements.txt": line + "\n"}), line)
+        self.assertTrue(mcp({"pyproject.toml": '[project]\nname = "x"\ndependencies = ["mcp[cli]>=1.2"]\n'}))
+        self.assertFalse(mcp({"pyproject.toml": '[project]\nname = "x"\ndependencies = ["mcp-proxy>=1"]\n'}))
+
     def test_truncated_walk_says_so(self):
         d = self.tree({f"a/f{i}.txt": "" for i in range(6)})
         old, scan.MAX_FILES = scan.MAX_FILES, 3
