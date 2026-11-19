@@ -22,6 +22,7 @@ All are user-invoked. Nothing is published, paid for or submitted without you.
 | Pricing, packaging, paywalls | `marketingskills:pricing`, `paywalls`, `offers` (not duplicated here) |
 | Asset vocabulary and detection | `skills/plan/scripts/scan.py` (`ASSETS`, `detect`) |
 | Generic launch/AI/SaaS directories, backlink verification, tracker format | `marketingskills:directory-submissions` (not duplicated here) |
+| What an agent may do in the factory, and the `next` / `done` loop | `skills/factory/RUNBOOK.md` |
 | Portfolio state: repos, priorities, ledger, metrics, reports | the control folder (`portfolio.json`, `LEDGER.csv`, `QUEUE.md`, `METRICS.csv`, `reports/`), described in `skills/factory/SKILL.md` |
 | Per-project state | `<project>/.visibility/` (PRODUCT.md, SCAN.md, PLAN.md, MONETIZE.md, LEDGER.csv; git-ignored) |
 

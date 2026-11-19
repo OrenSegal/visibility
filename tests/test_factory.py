@@ -45,7 +45,7 @@ class FactoryTest(unittest.TestCase):
         ledger, added, gone = factory.plan(self.pf, CATALOG, [], "2026-11-19", self.detect)
         self.assertEqual(sorted((r["repo"], r["platform"]) for r in added),
                          [("me/a", "dir"), ("me/a", "other"), ("me/a", "reg"), ("me/b", "dir"), ("me/b", "other")])
-        self.assertTrue(all(r["status"] == "planned" for r in ledger))
+        self.assertEqual({r["status"] for r in ledger}, {"planned", "queued"})  # "other" is owned elsewhere: nothing to prepare
         next(r for r in ledger if r["repo"] == "me/b" and r["platform"] == "dir")["status"] = "live"
         ledger, added, gone = factory.plan(self.pf, CATALOG, ledger, "2026-11-26", self.detect)
         self.assertEqual((added, gone), ([], []))
@@ -151,6 +151,59 @@ class FactoryTest(unittest.TestCase):
         self.assertIn("| me/a | 1 | 12 (+2) | 40 | 77 | - | x.example = dir 9; google.com 3 |", md)
         self.assertIn({"date": "2026-11-19", "repo": "me/a", "metric": "npm_week", "value": "77"}, rows)
         self.assertNotIn("me/off", md)
+
+    def test_next_returns_the_top_priority_prepare_task_with_filled_steps(self):
+        ledger, _, _ = factory.plan(self.pf, CATALOG, [], "2026-11-19", self.detect)
+        found = factory.tasks(self.pf, CATALOG, ledger)
+        self.assertEqual([(t["repo"], t["platform"]) for t in found[:2]], [("me/a", "dir"), ("me/b", "dir")])
+        top = found[0]
+        self.assertEqual(top["steps"]["claude"], ["write the manifest for me/a"])
+        self.assertEqual(top["kind"], "prepare")
+        self.assertIn("--status queued", top["then"])
+        self.assertEqual(factory.tasks(self.pf, CATALOG, ledger, repo="me/b")[0]["repo"], "me/b")
+        self.assertNotIn("me/off", {t["repo"] for t in found})
+
+    def test_approve_and_human_tasks_hide_claude_steps_and_wait_for_their_status(self):
+        ledger, _, _ = factory.plan(self.pf, CATALOG, [], "2026-11-19", self.detect)
+        # reg has only an approve: step, so it starts queued; dir still needs Claude's prepare step first
+        approve = factory.tasks(self.pf, CATALOG, ledger, "approve")
+        self.assertEqual([(t["repo"], t["platform"], t["steps"]) for t in approve],
+                         [("me/a", "reg", {"approve": ["publish a"], "human": []})])
+        self.assertEqual(factory.tasks(self.pf, CATALOG, ledger, "human"), [])
+        factory.done(ledger, "me/a", "dir", "waiting-on-user", today="d")
+        human = factory.tasks(self.pf, CATALOG, ledger, "human")
+        self.assertEqual([(t["repo"], t["platform"]) for t in human], [("me/a", "dir")])
+        self.assertEqual(list(human[0]["steps"]), ["approve", "human"])
+        self.assertEqual(len(human[0]["steps"]["human"]), 2)
+        self.assertIsNone(human[0]["scope"])
+
+    def test_done_validates_and_records(self):
+        ledger, _, _ = factory.plan(self.pf, CATALOG, [], "2026-11-19", self.detect)
+        row = factory.done(ledger, "me/a", "dir", "queued", note="wrote manifest", today="2026-11-20")
+        self.assertEqual((row["status"], row["notes"], row["date"]), ("queued", "wrote manifest", "2026-11-20"))
+        for args in (("me/a", "dir", "bogus"), ("me/zz", "dir", "queued"), ("me/a", "dir", "live"),
+                     ("me/a", "dir", "submitted", "ftp://x")):
+            with self.assertRaises(ValueError, msg=args):
+                factory.done(ledger, *args)
+        factory.done(ledger, "me/a", "dir", "live", url="https://x.example/a", today="d")
+        self.assertEqual(ledger[0]["listing_url"] if ledger[0]["platform"] == "dir" else "", "https://x.example/a")
+
+    def test_prepare_tasks_carry_only_claude_steps_and_rows_without_any_start_queued(self):
+        catalog = CATALOG + [{**ROW, "id": "form", "requires": ["skill-md"], "steps": ["human: submit the form"]}]
+        ledger, _, _ = factory.plan(self.pf, catalog, [], "2026-11-19", self.detect)
+        self.assertEqual({r["platform"]: r["status"] for r in ledger if r["repo"] == "me/a"}["form"], "queued")
+        self.assertEqual({r["platform"]: r["status"] for r in ledger if r["repo"] == "me/a"}["other"], "queued")  # see:
+        for t in factory.tasks(self.pf, catalog, ledger):
+            self.assertEqual(list(t["steps"]), ["claude"])
+            self.assertIn("Do not publish", t["scope"])
+
+    def test_status_counts_enabled_repos_and_lists_blocked_rows(self):
+        ledger, _, _ = factory.plan(self.pf, CATALOG, [], "2026-11-19", self.detect)
+        factory.done(ledger, "me/a", "reg", "waiting-on-user", note="pick a package name", today="d")
+        st = factory.status(self.pf, ledger)
+        self.assertEqual(sorted(st["repos"]), ["me/a", "me/b"])
+        self.assertEqual(st["repos"]["me/a"], {"planned": 1, "queued": 1, "waiting-on-user": 1})
+        self.assertEqual(st["waiting_on_user"], [{"repo": "me/a", "platform": "reg", "why": "pick a package name"}])
 
     def test_ledger_round_trips(self):
         path = os.path.join(self.control, "LEDGER.csv")

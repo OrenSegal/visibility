@@ -6,6 +6,11 @@ Usage:
   factory.py plan <control-dir> [--date YYYY-MM-DD] [--offline]
                                                     scan every enabled repo, add new rows to LEDGER.csv, write QUEUE.md
   factory.py report <control-dir> [--date ...]      re-check live listings, record metrics, write reports/<date>.md
+  factory.py status <control-dir> [--json]          counts per repo and status, and what is blocked on the user
+  factory.py next <control-dir> [--kind prepare|approve|human] [--repo owner/name] [--json]
+                                                    the next open task, as one JSON object an agent can act on
+  factory.py done <control-dir> <repo> <platform> --status S [--url U] [--note N]
+                                                    record what happened to one ledger row
 
 The control folder (a private repo such as distribution-hq) holds portfolio.json, LEDGER.csv, QUEUE.md,
 METRICS.csv and reports/. Nothing here publishes, signs in or submits: QUEUE.md lists the claude: work,
@@ -147,9 +152,13 @@ def plan(pf, catalog, ledger, today, detect=scan.detect, get=None):
                        "listing_url": "", "link_rel": "", "date": today, "notes": "; ".join(notes)}
                 ledger.append(row)
                 added.append(row)
+    for row in ledger:  # nothing for Claude to prepare: the row goes straight to the yes/user batches
+        p = by_id.get(row["platform"])
+        if p and row["status"] == "planned" and not any(x.startswith("claude:") for x in p.get("steps", [])):
+            row["status"], row["date"] = "queued", today
     scanned = {r["repo"] for r in pf["repos"] if r["enabled"] and os.path.isdir(r["path"])}
-    for row in ledger:  # a planned row whose asset disappeared is no longer work
-        if row["repo"] in scanned and row["status"] == "planned" and (row["repo"], row["platform"]) not in eligible_now \
+    for row in ledger:  # a planned or queued row whose asset disappeared is no longer work
+        if row["repo"] in scanned and row["status"] in ("planned", "queued") and (row["repo"], row["platform"]) not in eligible_now \
                 and row["platform"] in by_id:
             row["status"], row["notes"], row["date"] = "gone", "no longer eligible: a required asset is missing", today
             gone.append(row)
@@ -352,6 +361,79 @@ def report(pf, catalog, ledger, history, today, get=http_get, token=None):
     return "\n".join(out) + "\n", rows
 
 
+# ---------- agent loop: status, next, done ----------
+
+KINDS = {"planned": "prepare", "queued": "approve", "waiting-on-user": "human"}
+DONE_STATUSES = ("queued", "waiting-on-user", "submitted", "live", "rejected", "skipped", "planned")
+
+
+def tasks(pf, catalog, ledger, kind="prepare", repo=None):
+    """Open tasks of one kind, highest priority repo first. `prepare` is the only kind an agent does alone:
+    a `queued` row waits for a yes (approve:) and a `waiting-on-user` row for the user (human:)."""
+    by_id = {p["id"]: p for p in catalog}
+    prio = {r["repo"]: r["priority"] for r in pf["repos"]}
+    enabled = {r["repo"] for r in pf["repos"] if r["enabled"]}
+    out = []
+    for row in sorted(ledger, key=lambda r: (prio.get(r["repo"], 9), r["repo"], r["platform"])):
+        if row["status"] not in KINDS or row["repo"] not in enabled or row["platform"] not in by_id:
+            continue
+        if repo and row["repo"] != repo:
+            continue
+        p = by_id[row["platform"]]
+        steps = {k: [fill(x.split(": ", 1)[1], row["repo"]) for x in p.get("steps", []) if x.startswith(k + ":")]
+                 for k in ("claude", "approve", "human")}
+        row_kind = KINDS[row["status"]]
+        if row_kind == "approve" and not steps["approve"]:
+            row_kind = "human"  # queued, and only the user has steps left
+        if row_kind != kind or not steps["claude" if kind == "prepare" else kind]:
+            continue
+        recipe = os.path.join(scan.RECIPES, row["platform"] + ".md")
+        out.append({
+            "repo": row["repo"], "platform": row["platform"], "name": p["name"], "kind": kind,
+            "priority": prio.get(row["repo"], 9), "status": row["status"], "notes": row["notes"],
+            "steps": {"claude": steps["claude"]} if kind == "prepare" else {k: v for k, v in steps.items() if k != "claude"},
+            "scope": ("Work only on a branch in this repo's own clone. Do not publish, tag, push to the default branch, "
+                      "open PRs or issues, touch another repo, install packages, or handle money, accounts or secrets. "
+                      "A step that needs any of those is reported in --note, not done.") if kind == "prepare" else None,
+            "files_that_mark_it_done": p.get("files", []), "submit": p["submit"],
+            "verified": p["verified"], "owned_by": p.get("see"),
+            "recipe": os.path.relpath(recipe, os.path.dirname(HERE)) if os.path.exists(recipe) else None,
+            "then": f"factory.py done <control> {row['repo']} {row['platform']} --status "
+                    + {"prepare": "queued", "approve": "submitted", "human": "submitted"}[kind] + " --note <what you did>",
+        })
+    return out
+
+
+def status(pf, ledger):
+    """{repo: {status: n}} for enabled repos, plus the rows waiting on the user."""
+    counts = {r["repo"]: {} for r in pf["repos"] if r["enabled"]}
+    for row in ledger:
+        if row["repo"] in counts:
+            counts[row["repo"]][row["status"]] = counts[row["repo"]].get(row["status"], 0) + 1
+    waiting = [{"repo": r["repo"], "platform": r["platform"], "why": r["notes"]}
+               for r in ledger if r["status"] == "waiting-on-user" and r["repo"] in counts]
+    return {"repos": counts, "waiting_on_user": waiting}
+
+
+def done(ledger, repo, platform, new_status, url="", note="", today=""):
+    """Move one ledger row. Returns the row; raises ValueError with a reason an agent can act on."""
+    if new_status not in DONE_STATUSES:
+        raise ValueError(f"status must be one of {', '.join(DONE_STATUSES)}")
+    row = next((r for r in ledger if r["repo"] == repo and r["platform"] == platform), None)
+    if row is None:
+        raise ValueError(f"no ledger row for {repo} x {platform}; run plan first")
+    if new_status == "live" and not url:
+        raise ValueError("live needs --url: the listing page that proves it")
+    if url and not re.match(r"https?://", url):
+        raise ValueError("--url must be an http(s) URL")
+    row["status"], row["date"] = new_status, today
+    if url:
+        row["listing_url"] = url
+    if note:
+        row["notes"] = note
+    return row
+
+
 # ---------- init ----------
 
 def init(control, paths):
@@ -380,17 +462,48 @@ def init(control, paths):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[1])
-    ap.add_argument("command", choices=["init", "plan", "report"])
+    ap.add_argument("command", choices=["init", "plan", "report", "status", "next", "done"])
     ap.add_argument("control")
     ap.add_argument("paths", nargs="*")
     ap.add_argument("--date", default=datetime.date.today().isoformat())
     ap.add_argument("--offline", action="store_true", help="plan without checking package names on npm and PyPI")
+    ap.add_argument("--json", action="store_true")
+    ap.add_argument("--kind", choices=["prepare", "approve", "human"], default="prepare")
+    ap.add_argument("--repo")
+    ap.add_argument("--status")
+    ap.add_argument("--url", default="")
+    ap.add_argument("--note", default="")
     a = ap.parse_args()
     if a.command == "init":
         return init(a.control, a.paths)
     pf, catalog = load_portfolio(a.control), scan.load_catalog()
     ledger_path = os.path.join(a.control, "LEDGER.csv")
     ledger = read_csv(ledger_path, LEDGER_COLS)
+    if a.command == "status":
+        st = status(pf, ledger)
+        if a.json:
+            print(json.dumps(st, indent=2))
+        else:
+            for repo, c in st["repos"].items():
+                print(f"{repo}: " + ", ".join(f"{k} {v}" for k, v in sorted(c.items())))
+            for w in st["waiting_on_user"]:
+                print(f"waiting on you: {w['repo']} x {w['platform']}: {w['why']}")
+        return 0
+    if a.command == "next":
+        found = tasks(pf, catalog, ledger, a.kind, a.repo)
+        print(json.dumps(found[0] if found else None, indent=2) if a.json else
+              (f"{found[0]['repo']} x {found[0]['platform']} ({len(found)} open {a.kind} tasks)" if found else f"no open {a.kind} tasks"))
+        return 0
+    if a.command == "done":
+        if len(a.paths) != 2 or not a.status:
+            ap.error("done needs <repo> <platform> and --status")
+        try:
+            row = done(ledger, a.paths[0], a.paths[1], a.status, a.url, a.note, a.date)
+        except ValueError as e:
+            sys.exit(f"done: {e}")
+        write_csv(ledger_path, LEDGER_COLS, ledger)
+        print(f"{row['repo']} x {row['platform']}: {row['status']}")
+        return 0
     if a.command == "plan":
         ledger, added, gone = plan(pf, catalog, ledger, a.date, get=None if a.offline else http_get)
         write_csv(ledger_path, LEDGER_COLS, ledger)

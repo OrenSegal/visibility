@@ -33,14 +33,15 @@ The **control folder** (`--control`, default `../distribution-hq` beside the rep
 
 **`init <repo-path ...>`**: run `python3 scripts/factory.py init <control> <paths>`, skipping archived, forked and scrapped repos. Then fill `priority` and `character` for each repo from its README (the products people pay for first), and ask the user, in one batched question, for the `have` assets files cannot prove (live remote MCP URL, website, test account) and for anything to `skip`.
 
+**`status`, `next`, `done`**: the loop an agent runs; `RUNBOOK.md` is the contract (what a worker may do, the JSON `next` returns, how to record each outcome). Any agent that runs shell commands can follow it; these three commands are its whole interface.
+
 **`plan`**: run `python3 scripts/factory.py plan <control>`. It scans every enabled repo, adds new eligible rows to `LEDGER.csv` as `planned` (it never changes a row the user or `register` moved on), marks `planned` rows whose asset vanished as `gone`, and writes `QUEUE.md`. Show the user the counts and the top of each batch.
 
-**`run`** (the weekly pass; `plan` first):
+**`run`** (the weekly pass): `plan`, then the worker loop in `RUNBOOK.md` (`next`, do the task, `done`) until `next` is empty; then hand the operator `status` and the `approve` and `human` tasks. For the operator's batches:
 
-1. **Claude prepares.** For each repo in priority order, do the queue's section 1 on a branch in that repo (`visibility/<date>`, or the prefix the host requires): the files platforms read (`.claude-plugin/marketplace.json`, `gemini-extension.json`, `server.json` and its package marker, README install lines, listing copy per platform audience). Build from the repo's real code; follow `../build/recipes/` where one exists. Run the repo's own checks, commit, and with the user's go-ahead push the branch. Set those rows to `queued`.
-2. **Needs a yes.** Walk section 2 platform by platform (`/visibility:register <platform-id> --all`): show each exact command, wait for a yes, run it, set the row to `submitted`.
-3. **Only you.** Hand over section 3 as it stands: one block per platform, the sign-in once, then each repo's paste-ready values. Set those rows to `waiting-on-user`. When the user says a block is done, record the listing URLs and set the rows to `submitted` or `live`.
-4. Re-run `plan` so QUEUE.md shows what is left.
+1. **Needs a yes.** Walk `next --kind approve` platform by platform (`/visibility:register <platform-id> --all`): show each exact command, wait for a yes, run it, then `done --status submitted`.
+2. **Only you.** Hand over `next --kind human` (or QUEUE.md section 3) as it stands: one block per platform, the sign-in once, then each repo's paste-ready values. When the user says a block is done, record the listing URLs with `done --status submitted` or `--status live --url <page>`.
+3. Re-run `plan` so QUEUE.md shows what is left.
 
 **`report`**: run `python3 scripts/factory.py report <control>` (with `GITHUB_TOKEN` set to a token with push access to each repo, if the user has one, for views and referrers). It re-opens every `live` or `submitted` listing that has a URL, records the link's actual `rel` (or that no link to the repo was found), marks a vanished listing `rejected`, and writes `reports/<date>.md`. Read it to the user in three lines: what grew, which listings send visitors (a referrer whose host matches a listing's), and which platforms sent nothing after four weeks live, as candidates to stop spending time on.
 
