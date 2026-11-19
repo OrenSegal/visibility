@@ -60,6 +60,7 @@ ASSETS = {
     "webflow-app":     ("detect", "a Webflow Designer Extension (webflow.json / @webflow/designer-extension-typings)"),
     "apify-actor":     ("detect", "an Apify Actor (.actor/actor.json)"),
     "jsr-package":     ("detect", "a JSR package (jsr.json)"),
+    "swift-package":   ("detect", "a Swift package (Package.swift at the root)"),
     "slack-app":      ("ask", "a Slack app with real installs (10+ workspaces or 20+ MAU)"),
     "discord-app":    ("ask", "a verified Discord app"),
     "shopify-app":    ("ask", "a Shopify app"),
@@ -177,6 +178,8 @@ def detect(root):
             hit("workspace-addon", rel)
         elif base == "webflow.json":
             hit("webflow-app", rel)
+        elif rel == "Package.swift":
+            hit("swift-package", rel)
         elif base == "jsr.json":
             hit("jsr-package", rel)
         elif base == "llms.txt":
@@ -329,6 +332,8 @@ def check(catalog):
             errors.append(f"{where}: verified is yes but link is unchecked; use flow until the listing's link is observed")
         if p.get("category") == "monetize" and not p.get("revenue"):
             errors.append(f"{where}: monetize rows need revenue (fee, rev share, payout minimum)")
+        if "files" in p and not (isinstance(p["files"], list) and all(isinstance(f, str) and f for f in p["files"])):
+            errors.append(f"{where}: files must be a list of repo paths")
         if not (p.get("steps") or p.get("see")):
             errors.append(f"{where}: needs steps or a see pointer")
         for s in p.get("steps", []):

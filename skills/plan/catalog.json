@@ -1,5 +1,5 @@
 {
-  "about": "One row per platform. requires = asset ids from scripts/scan.py ASSETS (a|b means either). dr = domain rating as claimed by the source, never measured here; null = unknown. verified: yes = the submission flow and the listing's link were both observed; flow = the flow was checked on the official page or by use, the link was not; no = secondhand. steps: claude = Claude does it locally; approve = Claude runs it after an explicit yes (publish, PR, upload); human = the user does it (accounts, payment, DNS, forms, email). see = pointer to the fact's other home instead of steps.",
+  "about": "One row per platform. requires = asset ids from scripts/scan.py ASSETS (a|b means either). dr = domain rating as claimed by the source, never measured here; null = unknown. verified: yes = the submission flow and the listing's link were both observed; flow = the flow was checked on the official page or by use, the link was not; no = secondhand. steps: claude = Claude does it locally; approve = Claude runs it after an explicit yes (publish, PR, upload); human = the user does it (accounts, payment, DNS, forms, email). files = repo paths whose presence means the claude: steps are done (the factory queues the row past them). see = pointer to the fact's other home instead of steps.",
   "platforms": [
     {
       "id": "mcp-registry",
@@ -18,6 +18,9 @@
       "artifacts": [
         "server.json (name, title, description, version, remotes[].url or packages[])",
         "package marker: mcpName in package.json, or mcp-name: <name> in the PyPI README"
+      ],
+      "files": [
+        "server.json"
       ],
       "steps": [
         "claude: confirm the server is either a published package (npm/PyPI/OCI) or a remote Streamable HTTP URL under remotes",
@@ -737,6 +740,9 @@
         "approve: push the repo public",
         "claude: put the install commands in the README: claude plugin marketplace add owner/repo, then claude plugin install <name>@<marketplace>"
       ],
+      "files": [
+        ".claude-plugin/marketplace.json"
+      ],
       "notes": "Prerequisite for most Claude-plugin directories below.",
       "source": "research 2026-11-07 (official page loaded)",
       "verified": "yes"
@@ -889,6 +895,9 @@
       "effort": "minutes",
       "artifacts": [
         "gemini-extension.json at the repo root (name, version, description; skills in skills/<name>/SKILL.md are picked up)"
+      ],
+      "files": [
+        "gemini-extension.json"
       ],
       "steps": [
         "claude: write gemini-extension.json and run gemini extensions validate .; optionally gemini extensions link . to confirm the skills load, then uninstall",
@@ -1207,6 +1216,33 @@
       ],
       "source": "research 2026-11-07 (official page loaded)",
       "verified": "yes"
+    },
+    {
+      "id": "swift-package-index",
+      "name": "Swift Package Index",
+      "category": "package",
+      "submit": "https://swiftpackageindex.com/add-a-package",
+      "listing": "package page with compatibility matrix, docs hosting and a GitHub link",
+      "requires": [
+        "swift-package",
+        "github-public"
+      ],
+      "cost": "free",
+      "review": "automated checks, then a maintainer merge",
+      "link": "unchecked: package page links to the GitHub repo",
+      "effort": "minutes",
+      "artifacts": [
+        "a semver git tag (1.0.0, not v1.0.0 alone)",
+        "optional .spi.yml for DocC documentation hosting"
+      ],
+      "steps": [
+        "claude: confirm Package.swift resolves (swift package describe) and the repo has a semver release tag",
+        "claude: optionally add .spi.yml listing the documentation targets",
+        "human: open the Add a Package form, paste the repo URL and send it; a bot opens the PackageList PR"
+      ],
+      "notes": "The index rebuilds packages on every new tag, so the listing stays current without resubmitting.",
+      "source": "swiftpackageindex.com/add-a-package, 2026-11-19 (from prior knowledge, page not loaded)",
+      "verified": "no"
     },
     {
       "id": "homebrew-tap",
@@ -1829,6 +1865,9 @@
       "artifacts": [
         "context7.json (optional)"
       ],
+      "files": [
+        "context7.json"
+      ],
       "steps": [
         "claude: make sure docs are English .md/.mdx in the repo; optionally add context7.json to scope folders",
         "human: paste the public repo URL at context7.com/add-library",
@@ -2027,6 +2066,9 @@
       "link": "unchecked",
       "effort": "hours",
       "artifacts": [
+        ".github/FUNDING.yml"
+      ],
+      "files": [
         ".github/FUNDING.yml"
       ],
       "steps": [
