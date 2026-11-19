@@ -401,7 +401,8 @@ def main():
         mpath = os.path.join(a.control, "METRICS.csv")
         md, rows = report(pf, catalog, ledger, read_csv(mpath, METRIC_COLS), a.date, token=os.environ.get("GITHUB_TOKEN"))
         write_csv(ledger_path, LEDGER_COLS, ledger)
-        write_csv(mpath, METRIC_COLS, read_csv(mpath, METRIC_COLS) + rows)
+        kept = [m for m in read_csv(mpath, METRIC_COLS) if m["date"] != a.date]  # a re-run replaces that day's rows
+        write_csv(mpath, METRIC_COLS, kept + rows)
         os.makedirs(os.path.join(a.control, "reports"), exist_ok=True)
         with open(os.path.join(a.control, "reports", f"{a.date}.md"), "w", encoding="utf-8") as f:
             f.write(md)
