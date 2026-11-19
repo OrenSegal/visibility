@@ -2,7 +2,7 @@
 name: register
 description: Walk one platform from the visibility catalog end to end for this project - re-check the live submission page, build the artifacts it needs, run the publish step after an explicit yes, hand the account, payment, DNS and form steps to the user, then verify the listing and update the ledger.
 disable-model-invocation: true
-argument-hint: "<platform-id> [--dry-run]"
+argument-hint: "<platform-id> [--dry-run] [--all]"
 metadata:
   openclaw:
     homepage: https://github.com/OrenSegal/visibility
@@ -28,6 +28,7 @@ Get this project listed on one platform. The platform's row lives in `../plan/ca
 2. **Check the flow** (verified rule above).
 3. **Artifacts**: build every item in `artifacts` from the project's real code, README and OpenAPI, in the project repo. If `../build/recipes/<platform-id>.md` exists, follow it. Delegate: SKILL.md to `anthropic-skills:skill-creator`; MCP servers to `mcp-server-dev:build-mcp-server` or `anthropic-skills:mcp-builder`; tests for any new code via `mattpocock-skills:tdd`. Listing copy: vary it per platform audience (see `marketingskills:directory-submissions` `references/positioning-variations.md` if installed), never the same paragraph everywhere.
 4. **Run the steps** in order, by kind. `--dry-run` stops before the first `approve:` or `human:` step and prints the rest.
+   `--all` runs this platform for every repo in the factory's control folder (`../factory/SKILL.md`) whose `LEDGER.csv` row for it is open, in `portfolio.json` priority order: steps 1-3 per repo, then each `approve:` command with its own yes, then one `human:` block where the sign-in appears once and each repo's values follow. Update each repo's ledger row in the control folder.
 5. **Verify**: once live, open the listing URL and check the link to the product. Follow "Verify the Actual Backlink" in `marketingskills:directory-submissions` if installed; otherwise record the anchor's actual `rel` tokens, never assume "dofollow".
 6. **Ledger**: update `.visibility/LEDGER.csv` (`submitted`, `live`, `rejected` + reason) and add the listing URL to PRODUCT.md.
 
