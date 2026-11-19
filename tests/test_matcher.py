@@ -44,6 +44,29 @@ class MatcherTest(unittest.TestCase):
         self.assertTrue(mcp({"pyproject.toml": '[project]\nname = "x"\ndependencies = ["mcp[cli]>=1.2"]\n'}))
         self.assertFalse(mcp({"pyproject.toml": '[project]\nname = "x"\ndependencies = ["mcp-proxy>=1"]\n'}))
 
+    def test_a_github_remote_gh_cannot_vouch_for_can_be_declared_public(self):
+        d = self.tree({"README.md": "x"})
+        subprocess.run(["git", "-C", d, "init", "-q"], check=True)
+        subprocess.run(["git", "-C", d, "remote", "add", "origin", "https://github.com/example/none.git"], check=True)
+        real = subprocess.run
+
+        def run(cmd, *a, **kw):  # as on a machine where gh is not installed
+            if cmd[0] == "gh":
+                raise FileNotFoundError("gh")
+            return real(cmd, *a, **kw)
+
+        scan.subprocess.run = run
+        try:
+            md, _ = scan.report(d, set(), [])
+            declared, data = scan.report(d, {"github-public"}, [])
+        finally:
+            scan.subprocess.run = real
+        self.assertIn("- [ ] `github-public`", md)
+        self.assertIn("--have github-public", md)  # says how to count it once the user confirms
+        self.assertIn("- [x] `github-public`", declared)
+        self.assertNotIn("- [ ] `github-public`", declared)  # not both ticked and unticked
+        self.assertEqual(data["declared"], ["github-public"])
+
     def test_truncated_walk_says_so(self):
         d = self.tree({f"a/f{i}.txt": "" for i in range(6)})
         old, scan.MAX_FILES = scan.MAX_FILES, 3

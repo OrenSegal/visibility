@@ -239,8 +239,11 @@ def detect(root):
             private = ""
         if private == "false":
             hit("github-public", origin)
-        else:
-            found["github-remote"] = f"{origin} (private or unknown; not counted as public)"
+        elif private == "true":
+            found["github-remote"] = f"{origin} (private; not counted as public)"
+        else:  # gh missing, signed out or timed out: say how to count the repo once the user confirms it
+            found["github-remote"] = (f"{origin} (gh could not tell whether it is public, so it is not counted; "
+                                      f"if it is, re-run with --have github-public)")
     return found
 
 
@@ -268,8 +271,9 @@ def report(root, have_extra, catalog):
     truncated = found.pop("truncated", None)
     if truncated:
         out += [f"Incomplete scan: {truncated}.", ""]
-    if "github-remote" in found:
-        out.append(f"- [ ] `github-public`: {found.pop('github-remote')}")
+    remote = found.pop("github-remote", None)
+    if remote and "github-public" not in have_extra:  # a declared one is listed below, ticked
+        out.append(f"- [ ] `github-public`: {remote}")
     for a, (kind, desc) in ASSETS.items():
         if a in found:
             out.append(f"- [x] `{a}`: {desc} ({found[a]})")
