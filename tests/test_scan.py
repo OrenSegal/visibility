@@ -90,8 +90,14 @@ class ScanTest(unittest.TestCase):
         self.assertTrue(urls)
         for ref in urls:
             self.assertRegex(ref, r"^[0-9a-f]{40}$", "fallback must pin a full commit sha, not a branch")
-            r = subprocess.run(["git", "-C", root, "cat-file", "-e", ref + "^{commit}"], capture_output=True)
-            self.assertEqual(r.returncode, 0, f"pinned commit {ref} not in this repo")
+        git = lambda *a: subprocess.run(["git", "-C", root, *a], capture_output=True, text=True).stdout.strip()
+        if git("rev-parse", "--is-shallow-repository") == "true" and not os.environ.get("CI"):
+            self.skipTest("shallow clone: history is needed to check the pin (git fetch --unshallow); CI clones in full")
+        for ref in urls:
+            # an ancestor of HEAD, not merely an object in the clone: a commit that only an unmerged or rebased
+            # branch holds is not a reviewed revision of main, and stops resolving once that branch is deleted
+            r = subprocess.run(["git", "-C", root, "merge-base", "--is-ancestor", ref, "HEAD"], capture_output=True)
+            self.assertEqual(r.returncode, 0, f"pinned commit {ref} is not in the history of HEAD")
 
     def test_installs_are_pinned_and_never_a_claude_step(self):
         import glob
