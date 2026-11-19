@@ -28,6 +28,13 @@ class MatcherTest(unittest.TestCase):
         self.assertNotIn("skill-md", scan.detect(self.tree({"docs/SKILL.md": "# notes about skills\n"})))
         self.assertIn("skill-md", scan.detect(self.tree({"skills/x/SKILL.md": "---\nname: x\ndescription: y\n---\nbody\n"})))
 
+    def test_a_malformed_package_json_does_not_stop_the_scan(self):
+        found = scan.detect(self.tree({"a/package.json": "[]", "b/package.json": '{"name": "b", "dependencies": null}',
+                                       "c/package.json": '{"name": "c", "engines": null, "devDependencies": []}',
+                                       "d/package.json": '{"name": "d", "bin": "cli.js", "dependencies": {"@raycast/api": "1"}}'}))
+        self.assertTrue({"npm-package", "npm-cli", "raycast-ext"} <= set(found))
+        self.assertNotIn("vscode-ext", found)
+
     def test_truncated_walk_says_so(self):
         d = self.tree({f"a/f{i}.txt": "" for i in range(6)})
         old, scan.MAX_FILES = scan.MAX_FILES, 3

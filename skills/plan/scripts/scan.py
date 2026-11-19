@@ -197,7 +197,10 @@ def detect(root):
                 pkg = json.loads(read(path))
             except ValueError:
                 continue
-            deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
+            if not isinstance(pkg, dict):
+                continue
+            table = lambda key: pkg[key] if isinstance(pkg.get(key), dict) else {}  # null or a list is not a table
+            deps = {**table("dependencies"), **table("devDependencies")}
             if "@modelcontextprotocol/sdk" in deps or "fastmcp" in deps:
                 hit("mcp-server", rel)
             if "@canva/app-ui-kit" in deps or "@canva/platform" in deps:
@@ -208,7 +211,7 @@ def detect(root):
                 hit("webflow-app", rel)
             if "@raycast/api" in deps:
                 hit("raycast-ext", rel)
-            if "vscode" in pkg.get("engines", {}):
+            if "vscode" in table("engines"):
                 hit("vscode-ext", rel)
             if not pkg.get("private") and pkg.get("name"):
                 hit("npm-package", rel)
