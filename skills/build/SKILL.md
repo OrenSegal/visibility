@@ -15,7 +15,7 @@ Build one asset in the project repo so that more platforms in the visibility cat
 Resolve from this file's directory:
 
 - `recipes/<id>.md`: one recipe per asset id (from `ASSETS` in `../plan/scripts/scan.py`) or per platform id (an integration only that platform uses, such as an n8n node). Each recipe gives the smallest version, the official scaffold, the fields the listings check, tagged steps, and a local verify command, with the docs page it came from.
-- `../plan/catalog.json`: which platforms the asset unlocks. If this skill was installed without its siblings, read the catalog from https://raw.githubusercontent.com/OrenSegal/visibility/4d14652120225b24aeca1b9dcf278834d179debb/skills/plan/catalog.json and recipes from https://raw.githubusercontent.com/OrenSegal/visibility/4d14652120225b24aeca1b9dcf278834d179debb/skills/build/recipes/<id>.md (a pinned, reviewed revision, not the default branch).
+- `../plan/catalog.json`: which platforms the asset unlocks. If this skill was installed without its siblings, read the catalog from https://raw.githubusercontent.com/OrenSegal/visibility/64b652349842ef330235e9594257b6c996cf2a90/skills/plan/catalog.json and recipes from https://raw.githubusercontent.com/OrenSegal/visibility/64b652349842ef330235e9594257b6c996cf2a90/skills/build/recipes/<id>.md (a pinned, reviewed revision, not the default branch).
 
 ## Rules
 
