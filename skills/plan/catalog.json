@@ -1232,7 +1232,7 @@
       "link": "unchecked: package page links to the GitHub repo",
       "effort": "minutes",
       "artifacts": [
-        "a semver git tag (1.0.0, not v1.0.0 alone)",
+        "a semver release tag (SwiftPM reads v1.2.3 and 1.2.3 alike)",
         "optional .spi.yml for DocC documentation hosting"
       ],
       "steps": [
