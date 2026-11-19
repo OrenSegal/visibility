@@ -6,7 +6,7 @@
     {
       "name": "visibility",
       "source": "./",
-      "description": "Asset-aware visibility plan plus gated, one-platform-at-a-time registration on MCP, skill, automation, extension and API marketplaces.",
+      "description": "Asset-aware visibility plan plus gated, one-platform-at-a-time registration on MCP, skill, automation, extension and API marketplaces, recipes for the asset that unlocks more of them, and a ranking of the channels that pay.",
       "version": "0.2.1",
       "license": "MIT"
     }

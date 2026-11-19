@@ -99,6 +99,15 @@ class ScanTest(unittest.TestCase):
             r = subprocess.run(["git", "-C", root, "merge-base", "--is-ancestor", ref, "HEAD"], capture_output=True)
             self.assertEqual(r.returncode, 0, f"pinned commit {ref} is not in the history of HEAD")
 
+    def test_manifests_agree_on_version_and_list_every_skill(self):
+        root = os.path.join(os.path.dirname(__file__), "..")
+        load = lambda rel: json.load(open(os.path.join(root, rel), encoding="utf-8"))
+        plugin, market, gemini = load(".claude-plugin/plugin.json"), load(".claude-plugin/marketplace.json"), load("gemini-extension.json")
+        self.assertEqual({plugin["version"], market["plugins"][0]["version"], gemini["version"]}, {plugin["version"]})
+        on_disk = {"./skills/" + d for d in os.listdir(os.path.join(root, "skills"))
+                   if os.path.isfile(os.path.join(root, "skills", d, "SKILL.md"))}
+        self.assertEqual(set(plugin["skills"]), on_disk)
+
     def test_installs_are_pinned_and_never_a_claude_step(self):
         import glob
         root = os.path.join(os.path.dirname(__file__), "..")
