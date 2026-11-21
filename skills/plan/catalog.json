@@ -1341,7 +1341,7 @@
       "id": "github-topics",
       "name": "GitHub topics and README badges",
       "category": "devtools",
-      "submit": "https://github.com/<owner>/<repo> (About settings)",
+      "submit": "the repo page: gear icon next to About",
       "listing": "github.com/topics/<topic> pages",
       "dr": null,
       "requires": [
