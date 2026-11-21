@@ -11,6 +11,8 @@ Usage:
                                                     the next open task, as one JSON object an agent can act on
   factory.py done <control-dir> <repo> <platform> --status S [--url U] [--note N]
                                                     record what happened to one ledger row
+  factory.py baseline <control-dir> [--repo owner/name] [--json]
+                                                    mechanical robustness checks per repo (what a repo must have to be safe to depend on)
 
 The control folder (a private repo such as distribution-hq) holds portfolio.json, LEDGER.csv, QUEUE.md,
 METRICS.csv and reports/. Nothing here publishes, signs in or submits: QUEUE.md lists the claude: work,
@@ -434,6 +436,84 @@ def done(ledger, repo, platform, new_status, url="", note="", today=""):
     return row
 
 
+# ---------- baseline: what every repo needs to be safe to depend on ----------
+
+CHECKS = ("license", "readme", "security-policy", "tests-exist", "ci-on-pr", "workflow-permissions",
+          "workflow-timeouts", "actions-pinned", "dependabot", "versions-agree")
+SHA_REF = re.compile(r"^[0-9a-f]{40}$")
+
+
+def _workflows(path):
+    d = os.path.join(path, ".github", "workflows")
+    out = []
+    for f in sorted(os.listdir(d)) if os.path.isdir(d) else []:
+        if f.endswith((".yml", ".yaml")):
+            out.append((f, scan.read(os.path.join(d, f))))
+    return out
+
+
+def _has_any(path, rels):
+    return any(os.path.exists(os.path.join(path, r)) for r in rels)
+
+
+def _versions(path):
+    """{file: version} for the root manifests that carry one; a dynamic pyproject version is not read."""
+    found = {}
+    for rel in ("package.json", ".claude-plugin/plugin.json", "gemini-extension.json"):
+        try:
+            v = json.loads(scan.read(os.path.join(path, rel)) or "{}").get("version")
+        except ValueError:
+            v = None
+        if isinstance(v, str):
+            found[rel] = v
+    m = re.search(r"^\[project\][^\[]*?^version\s*=\s*[\"']([^\"']+)", scan.read(os.path.join(path, "pyproject.toml")), re.M | re.S)
+    if m:
+        found["pyproject.toml"] = m.group(1)
+    return found
+
+
+def baseline(path, community_defaults=False):
+    """{check: (ok, detail)}. Every check is mechanical; `detail` names what to fix. A repo with community
+    defaults (an owner-level .github repo) needs no SECURITY.md of its own."""
+    wf = _workflows(path)
+    res = {}
+    res["license"] = (any(re.fullmatch(r"(LICEN[CS]E|COPYING)(\.\w+)?", f) for f in os.listdir(path)), "add a LICENSE file")
+    res["readme"] = (any(f.lower() in ("readme.md", "readme.rst", "readme") for f in os.listdir(path)), "add a README.md")
+    res["security-policy"] = (community_defaults or _has_any(path, ("SECURITY.md", ".github/SECURITY.md", "docs/SECURITY.md")),
+                              "add SECURITY.md (how to report a vulnerability), or an owner-level .github repo with one")
+    has_tests = False
+    for dirpath, dirnames, filenames in os.walk(path):
+        dirnames[:] = [d for d in dirnames if d not in (".git", "node_modules", ".venv", "venv", "__pycache__")]
+        depth = os.path.relpath(dirpath, path).count(os.sep)
+        if depth > 3:
+            dirnames[:] = []
+        if os.path.basename(dirpath) in ("tests", "test", "Tests", "__tests__", "spec") or \
+                any(re.match(r"(test_.*\.py|.*_test\.(py|go|rs)|.*\.test\.(js|ts|mjs)|.*Tests?\.swift)$", f) for f in filenames):
+            has_tests = True
+            break
+    res["tests-exist"] = (has_tests, "add tests")
+    res["ci-on-pr"] = (any(re.search(r"^\s*pull_request", t, re.M) or "pull_request" in t.split("jobs:")[0] for _, t in wf),
+                       "add a workflow that runs the tests on pull_request")
+    no_perm = [f for f, t in wf if not re.search(r"^permissions:", t, re.M)]
+    res["workflow-permissions"] = (not no_perm, "add a top-level `permissions: contents: read` to " + ", ".join(no_perm))
+    slow = [f for f, t in wf if len(re.findall(r"^\s+runs-on:", t, re.M)) > len(re.findall(r"^\s+timeout-minutes:", t, re.M))]
+    res["workflow-timeouts"] = (not slow, "add timeout-minutes to every job in " + ", ".join(slow))
+    loose = set()
+    for _, t in wf:
+        for ref in re.findall(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)", t, re.M):
+            if ref.startswith(("./", "docker://")) or "@" not in ref:
+                continue
+            if not SHA_REF.match(ref.rsplit("@", 1)[1]):
+                loose.add(ref)
+    res["actions-pinned"] = (not loose, "pin to a full commit sha (keep the version in a trailing comment): " + ", ".join(sorted(loose)))
+    dep = os.path.join(path, ".github", "dependabot.yml")
+    res["dependabot"] = (os.path.exists(dep) and "github-actions" in scan.read(dep),
+                         "add .github/dependabot.yml with a github-actions entry (so pinned shas get updated)")
+    vs = _versions(path)
+    res["versions-agree"] = (len(set(vs.values())) <= 1, "manifest versions differ: " + ", ".join(f"{k} {v}" for k, v in vs.items()))
+    return res
+
+
 # ---------- init ----------
 
 def init(control, paths):
@@ -462,7 +542,7 @@ def init(control, paths):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[1])
-    ap.add_argument("command", choices=["init", "plan", "report", "status", "next", "done"])
+    ap.add_argument("command", choices=["init", "plan", "report", "status", "next", "done", "baseline"])
     ap.add_argument("control")
     ap.add_argument("paths", nargs="*")
     ap.add_argument("--date", default=datetime.date.today().isoformat())
@@ -488,6 +568,23 @@ def main():
                 print(f"{repo}: " + ", ".join(f"{k} {v}" for k, v in sorted(c.items())))
             for w in st["waiting_on_user"]:
                 print(f"waiting on you: {w['repo']} x {w['platform']}: {w['why']}")
+        return 0
+    if a.command == "baseline":
+        results = {}
+        for r in pf["repos"]:
+            if r["enabled"] and (not a.repo or r["repo"] == a.repo) and os.path.isdir(r["path"]):
+                results[r["repo"]] = baseline(r["path"], pf.get("community_defaults", False))
+        if a.json:
+            print(json.dumps({repo: {c: {"ok": ok, "fix": None if ok else why} for c, (ok, why) in res.items()}
+                              for repo, res in results.items()}, indent=2))
+        else:
+            print("| Repo | " + " | ".join(CHECKS) + " |\n|---|" + "---|" * len(CHECKS))
+            for repo, res in results.items():
+                print(f"| {repo} | " + " | ".join("ok" if res[c][0] else "FIX" for c in CHECKS) + " |")
+            for repo, res in results.items():
+                for c in CHECKS:
+                    if not res[c][0]:
+                        print(f"{repo}: {c}: {res[c][1]}")
         return 0
     if a.command == "next":
         found = tasks(pf, catalog, ledger, a.kind, a.repo)

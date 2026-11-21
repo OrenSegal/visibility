@@ -44,10 +44,22 @@ Publish, tag, release, open PRs or issues, change repo settings or topics, touch
 
 `done --status live` requires `--url` (the listing page); only the operator or `report` should set `live` or `submitted`.
 
+## Baseline: keep every repo safe to depend on
+
+```bash
+python3 $F baseline $C                 # table: one row per repo, one column per check, then what to fix
+python3 $F baseline $C --repo owner/name --json
+```
+
+Ten mechanical checks: `license`, `readme`, `security-policy`, `tests-exist`, `ci-on-pr`, `workflow-permissions` (a top-level `permissions:` in every workflow), `workflow-timeouts` (`timeout-minutes` on every job), `actions-pinned` (every third-party action at a full commit sha, version in a trailing comment), `dependabot` (a `github-actions` entry, so the pins get updated) and `versions-agree` (root manifests carry one version). Fix a failing check on a branch the same way as a `prepare` task, then re-run `baseline`. Set `"community_defaults": true` at the top of `portfolio.json` when an owner-level `.github` repo supplies SECURITY.md.
+
+To pin an action, resolve the tag's commit with `git ls-remote https://github.com/<owner>/<action> 'refs/tags/<tag>' 'refs/tags/<tag>^{}'` and take the `^{}` line when there is one.
+
 ## Weekly cadence
 
 ```bash
 python3 $F plan $C                     # new repos, new assets, rows whose asset vanished
+python3 $F baseline $C                 # anything that fell below the baseline since last week
 # worker loop above
 GITHUB_TOKEN=<token with push access> python3 $F report $C   # re-check live listings, metrics, reports/<date>.md
 ```
