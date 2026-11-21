@@ -1,5 +1,5 @@
 {
   "name": "visibility",
-  "version": "0.2.1",
-  "description": "Fingerprint a project for listable assets (MCP server, Agent Skill, plugin, OpenAPI, CLI, browser extension) and get it listed on high-authority marketplaces and directories, one gated platform at a time."
+  "version": "0.4.0",
+  "description": "Ship it where builders look: get your MCP server, agent plugin, skill, SDK or API listed in the registries, marketplaces and package indexes developers and agents actually search."
 }

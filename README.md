@@ -1,14 +1,14 @@
 # visibility
 
-Get a product listed on high-authority agent, integration, extension and API marketplaces (a dedicated page, an install button, often a backlink), build the one asset that unlocks more of them, and find the channels that pay. Five Agent Skills for Claude Code.
+Ship it where builders look: get your MCP server, agent plugin, skill, SDK or API listed in the registries, marketplaces and package indexes developers and agents actually search. It finds what a project can list today, builds the one asset that unlocks more listings, and finds the channels that pay. Five Agent Skills for Claude Code.
 
 | Skill | Use it to |
 |---|---|
-| `/visibility:plan [path ...] [--portfolio]` | Detect listable assets (MCP server, Agent Skill, Claude plugin, OpenAPI, npm CLI, browser/VS Code/Raycast/Obsidian extension, GitHub Action, llms.txt, iOS app), ask for the ones files cannot prove (remote MCP URL, OAuth, public API, domain, test account), and rank where it can be listed now and which one asset unlocks the most listings. |
+| `/visibility:plan [path ...] [--portfolio]` | Detect listable assets (MCP server, Agent Skill, Claude plugin, OpenAPI, npm/PyPI/Rust/Swift/Go package, VS Code/JetBrains/Raycast/Obsidian extension, GitHub Action, llms.txt), ask for the ones files cannot prove (remote MCP URL, OAuth, public API, Hugging Face model or dataset, test account), and rank where it can be listed now and which one asset unlocks the most listings. |
 | `/visibility:register <platform-id>` | Walk one platform end to end: re-check the live submission page, build the artifacts, run publish commands after an explicit yes, hand account/payment/DNS/form steps to you, verify the listing and update the ledger. |
-| `/visibility:build [asset-id \| platform-id]` | Build the missing asset that unlocks the most listings (remote MCP server, server.json, one-job browser extension, API-wrapper CLI, OpenAPI file, llms.txt docs) or a platform's own integration (n8n node, Make app, Notion connection), from a recipe sourced from the platform's docs. |
+| `/visibility:build [asset-id \| platform-id]` | Build the missing asset that unlocks the most listings (remote MCP server, server.json, API-wrapper CLI, OpenAPI file, llms.txt docs, VS Code or Raycast extension) or a platform's own integration (n8n node, Linear app, ChatGPT app), from a recipe sourced from the platform's docs. |
 | `/visibility:factory [init \| plan \| run \| report]` | Run all of the above across every repo you own from one private control folder: one ledger, a weekly queue split into what Claude prepares, what needs your yes and what only you can do (grouped by platform, so one sign-in covers every repo), and a report of which listings send traffic. |
-| `/visibility:monetize [path] [--channel id]` | Rank the channels that pay (paid API plans, marketplace actors, cloud marketplaces, sponsorships, merchant-of-record stores, paid plugins, pay-per-call) by fit, fee and effort, and set one up. |
+| `/visibility:monetize [path] [--channel id]` | Rank the channels that pay (pay-per-call with x402, paid MCP marketplaces, sponsorships, paid API plans, marketplace actors, paid editor plugins) by fit, fee and effort, and set one up. |
 
 All are user-invoked. Nothing is published, paid for or submitted without you.
 
@@ -21,10 +21,14 @@ All are user-invoked. Nothing is published, paid for or submitted without you.
 | How to build an asset or a platform's integration | `skills/build/recipes/<id>.md` |
 | Pricing, packaging, paywalls | `marketingskills:pricing`, `paywalls`, `offers` (not duplicated here) |
 | Asset vocabulary and detection | `skills/plan/scripts/scan.py` (`ASSETS`, `detect`) |
+| Developer launch channels (Show HN, Product Hunt Developer Tools) | `skills/plan/catalog.json` rows with `category: "launch"` |
+| Launch strategy and timing beyond those two rows | `marketingskills:launch` (not duplicated here) |
 | Generic launch/AI/SaaS directories, backlink verification, tracker format | `marketingskills:directory-submissions` (not duplicated here) |
 | What an agent may do in the factory, and the `next` / `done` loop | `skills/factory/RUNBOOK.md` |
 | Portfolio state: repos, priorities, ledger, metrics, reports | the control folder (`portfolio.json`, `LEDGER.csv`, `QUEUE.md`, `METRICS.csv`, `reports/`), described in `skills/factory/SKILL.md` |
 | Per-project state | `<project>/.visibility/` (PRODUCT.md, SCAN.md, PLAN.md, MONETIZE.md, LEDGER.csv; git-ignored) |
+
+Out of scope: consumer app stores, browser extension stores, CMS and business-app marketplaces (Slack, HubSpot, Shopify and similar), closed automation hubs (Zapier, Make, IFTTT and similar) and cloud marketplaces. They were removed in 0.4.0.
 
 Catalog rows marked `verified: no` come from secondhand sources; `register` re-checks the live page before using one. `verified: flow` means the submission flow was checked but the link the listing gives was not; `yes` means both were observed. DR figures are as claimed by the source and none was measured here; a row without one is shown as `unknown` and ranks after the rows that have one. `.github/linkcheck.py` reports `submit` URLs that no longer resolve and runs weekly.
 

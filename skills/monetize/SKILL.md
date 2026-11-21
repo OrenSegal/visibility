@@ -1,6 +1,6 @@
 ---
 name: monetize
-description: Find where a project can earn money through the platforms it can be listed on - paid API plans, marketplace actors, cloud marketplaces, sponsorships, merchant-of-record stores, paid plugins, pay-per-call agent payments - ranked by fee, payout terms and effort, then set up one channel at a time.
+description: Find where a project can earn money through the platforms it can be listed on - pay-per-call agent payments, paid MCP marketplaces, sponsorships, paid API plans, marketplace actors, paid editor plugins - ranked by fee, payout terms and effort, then set up one channel at a time.
 disable-model-invocation: true
 argument-hint: "[path] [--channel <id>]"
 metadata:
@@ -25,9 +25,9 @@ What to charge, how to package plans and how to write the paywall belong elsewhe
 
 ## Steps
 
-1. **Facts.** Reuse `.visibility/PRODUCT.md` if it exists; otherwise run step 1 of `../plan/SKILL.md`. Add what monetization needs: is the product paid today, and through what (Stripe, App Store, none)? Who pays: developers, businesses or consumers? Is it usage-based?
+1. **Facts.** Reuse `.visibility/PRODUCT.md` if it exists; otherwise run step 1 of `../plan/SKILL.md`. Add what monetization needs: is the product paid today, and through what (Stripe, Polar, GitHub Sponsors, none)? Who pays: developers, teams or agents? Is it usage-based?
 2. **Scan.** Run `python3 ../plan/scripts/scan.py <path> --have <confirmed assets>` and read the "Earn now" table. "One asset away" rows in the `monetize` category are channels unlocked by building one asset (see `/visibility:build`).
-3. **Rank** the eligible channels by fit for who pays. Developer tools suit API hubs, marketplaces, sponsorships and pay-per-call; B2B suits cloud marketplaces; consumers suit stores. Within each group, rank by take rate, then effort. Write `.visibility/MONETIZE.md` with three sections: Now (at most three channels: why each, the fee, what Claude prepares, the user's `human:` steps), Build next (an asset that unlocks a better channel), and Skip (with the reason).
+3. **Rank** the eligible channels by fit for who pays: pay-per-call (`x402`) and paid MCP marketplaces for agent-called APIs and MCP servers; sponsorships (`github-sponsors`, `polar`) for open-source libraries, CLIs and plugins; API hubs (`rapidapi-paid`, `apilayer`, `apify-store`) for public APIs; paid plugin stores and digital sales (`jetbrains-paid`, `gumroad`) for editor plugins and skill packs. Within each group, rank by take rate, then effort. Write `.visibility/MONETIZE.md` with three sections: Now (at most three channels: why each, the fee, what Claude prepares, the user's `human:` steps), Build next (an asset that unlocks a better channel), and Skip (with the reason).
 4. **Set up one channel** (`--channel <id>`, or the top pick after a yes). Run its row the way `../register/SKILL.md` does: re-check the live page, build the artifacts, wait for a yes before any `approve:` step, and hand over the `human:` steps.
 5. **Ledger.** Add or update the row in `.visibility/LEDGER.csv` with status `planned`, `waiting-on-user` or `live`, and note the revenue terms you confirmed.
 

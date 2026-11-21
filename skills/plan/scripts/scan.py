@@ -5,8 +5,8 @@ Usage:
   scan.py [root ...] [--have a,b] [--json]   one report per root on stdout
   scan.py --check                            catalog consistency
 
-Assets a file can prove are detected here; the rest (a live remote MCP URL, a domain you
-control, a test account) come from --have, which the plan skill fills after asking.
+Assets a file can prove are detected here; the rest (a live remote MCP URL, a public
+API, a test account) come from --have, which the plan skill fills after asking.
 The catalog lives in ../catalog.json; every platform fact has its home there.
 """
 import argparse
@@ -36,45 +36,31 @@ ASSETS = {
     "npm-package":    ("detect", "a publishable npm package (package.json, not private)"),
     "npm-cli":        ("detect", "an npm CLI (package.json bin)"),
     "pypi-package":   ("detect", "a publishable Python package (pyproject [project])"),
-    "browser-ext":    ("detect", "a browser extension (manifest.json with manifest_version)"),
     "vscode-ext":     ("detect", "a VS Code extension (package.json engines.vscode)"),
     "raycast-ext":    ("detect", "a Raycast extension (@raycast/api)"),
     "obsidian-plugin": ("detect", "an Obsidian plugin (manifest.json with minAppVersion)"),
     "github-action":  ("detect", "a GitHub Action (action.yml at the root)"),
     "llms-txt":       ("detect", "an llms.txt file"),
-    "ios-app":        ("detect", "an iOS/macOS app (.xcodeproj)"),
     "dockerfile":     ("detect", "a Dockerfile"),
     "rust-crate":     ("detect", "a Rust crate (Cargo.toml [package])"),
     "jetbrains-plugin": ("detect", "a JetBrains plugin (META-INF/plugin.xml)"),
-    "figma-plugin":   ("detect", "a Figma plugin (manifest.json with editorType)"),
-    "wordpress-plugin": ("detect", "a WordPress plugin (PHP 'Plugin Name:' header)"),
     "cursor-plugin":   ("detect", "a Cursor plugin (.cursor-plugin/plugin.json)"),
     "zed-extension":   ("detect", "a Zed extension (extension.toml)"),
     "kiro-power":      ("detect", "a Kiro power (POWER.md; a plugin.json-format power is declared with --have)"),
-    "teams-app":       ("detect", "a Microsoft Teams app (manifest.json with the MicrosoftTeams $schema)"),
-    "power-connector":  ("detect", "a Power Platform custom connector (apiDefinition.swagger.json + apiProperties.json)"),
-    "forge-app":       ("detect", "an Atlassian Forge app (manifest.yml with app.id / modules)"),
-    "workspace-addon":  ("detect", "a Google Workspace add-on (appsscript.json with addOns)"),
-    "canva-app":       ("detect", "a Canva app (@canva/app-ui-kit or @canva/platform dependency)"),
-    "framer-plugin":   ("detect", "a Framer plugin (framer-plugin dependency)"),
-    "webflow-app":     ("detect", "a Webflow Designer Extension (webflow.json / @webflow/designer-extension-typings)"),
     "apify-actor":     ("detect", "an Apify Actor (.actor/actor.json)"),
     "jsr-package":     ("detect", "a JSR package (jsr.json)"),
     "swift-package":   ("detect", "a Swift package (Package.swift at the root)"),
-    "slack-app":      ("ask", "a Slack app with real installs (10+ workspaces or 20+ MAU)"),
-    "discord-app":    ("ask", "a verified Discord app"),
-    "shopify-app":    ("ask", "a Shopify app"),
+    "go-module":       ("detect", "a Go module (go.mod at the root)"),
     "alfred-workflow": ("ask", "an Alfred workflow with real users"),
     "mcp-remote":     ("ask", "a live remote (Streamable HTTP) MCP server URL"),
     "mcp-oauth":      ("ask", "that remote MCP server supports OAuth"),
     "public-api":     ("ask", "a public HTTP API customers call with their own API key"),
-    "own-domain":     ("ask", "a domain whose DNS you control"),
     "docs-site":      ("ask", "docs published on your own domain"),
     "website":        ("ask", "a live product website"),
     "test-account":   ("ask", "a test account you can hand reviewers"),
     "demo-video":     ("ask", "a short uncut demo video"),
+    "hf-repo":        ("ask", "a model, dataset or demo to publish on the Hugging Face Hub"),
     "claude-paid":    ("ask", "a paid claude.ai plan (directory portal access)"),
-    "apple-dev":      ("ask", "an Apple Developer Program membership"),
 }
 EFFORT = {"minutes": 1, "hours": 2, "days": 4, "weeks": 8}
 # AGENTS.md: accounts, payment, credentials and form submission are always human: steps. Words after "/" are URL paths.
@@ -121,9 +107,6 @@ def walk(root):
         here = "" if rel == "." else rel + "/"
         dirnames[:] = [d for d in dirnames
                        if not SKIP.search(d) or (d in BUILD_OUTPUT and here + d in tracked)]
-        for d in dirnames:
-            if d.endswith(".xcodeproj"):
-                yield ("" if rel == "." else rel + "/") + d, None
         for name in filenames:
             n += 1
             if n > MAX_FILES:  # shortcut: huge monorepos are sampled, not walked; raise MAX_FILES if a real one needs it
@@ -143,8 +126,6 @@ def detect(root):
         base = rel.rsplit("/", 1)[-1]
         if not rel:
             found["truncated"] = f"stopped after {MAX_FILES} files; assets in the rest of the tree were not looked for"
-        elif rel.endswith(".xcodeproj"):
-            hit("ios-app", rel)
         elif base == "SKILL.md":
             if re.match(r"---\n(.*\n)*?name:.*\n(.*\n)*?---", read(path, 8192)):  # a skill has frontmatter with a name
                 hit("skill-md", rel)
@@ -160,8 +141,6 @@ def detect(root):
             hit("rust-crate", rel)
         elif rel.endswith("META-INF/plugin.xml"):
             hit("jetbrains-plugin", rel)
-        elif base.endswith(".php") and "/" not in rel and re.search(r"^\s*\*?\s*Plugin Name:", read(path, 8192), re.M):
-            hit("wordpress-plugin", rel)
         elif rel.endswith(".cursor-plugin/plugin.json"):
             hit("cursor-plugin", rel)
         elif rel.endswith(".actor/actor.json"):
@@ -170,32 +149,16 @@ def detect(root):
             hit("zed-extension", rel)
         elif base == "POWER.md":
             hit("kiro-power", rel)
-        elif base == "apiProperties.json":
-            hit("power-connector", rel)
-        elif base == "manifest.yml" and re.search(r"^app:", read(path), re.M) and re.search(r"^modules:", read(path), re.M):
-            hit("forge-app", rel)
-        elif base == "appsscript.json" and '"addOns"' in read(path):
-            hit("workspace-addon", rel)
-        elif base == "webflow.json":
-            hit("webflow-app", rel)
-        elif rel == "Package.swift":
-            hit("swift-package", rel)
+        elif rel in ("Package.swift", "go.mod"):
+            hit("swift-package" if rel == "Package.swift" else "go-module", rel)
         elif base == "jsr.json":
             hit("jsr-package", rel)
         elif base == "llms.txt":
             hit("llms-txt", rel)
         elif rel in ("action.yml", "action.yaml"):
             hit("github-action", rel)
-        elif base == "manifest.json":
-            text = read(path)
-            if "MicrosoftTeams" in text:
-                hit("teams-app", rel)
-            elif '"manifest_version"' in text:
-                hit("browser-ext", rel)
-            elif '"minAppVersion"' in text:
-                hit("obsidian-plugin", rel)
-            elif '"editorType"' in text:
-                hit("figma-plugin", rel)
+        elif base == "manifest.json" and '"minAppVersion"' in read(path) and '"manifest_version"' not in read(path):
+            hit("obsidian-plugin", rel)
         elif base == "package.json":
             try:
                 pkg = json.loads(read(path))
@@ -204,12 +167,6 @@ def detect(root):
             deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
             if "@modelcontextprotocol/sdk" in deps or "fastmcp" in deps:
                 hit("mcp-server", rel)
-            if "@canva/app-ui-kit" in deps or "@canva/platform" in deps:
-                hit("canva-app", rel)
-            if "framer-plugin" in deps:
-                hit("framer-plugin", rel)
-            if "@webflow/designer-extension-typings" in deps:
-                hit("webflow-app", rel)
             if "@raycast/api" in deps:
                 hit("raycast-ext", rel)
             if "vscode" in pkg.get("engines", {}):
