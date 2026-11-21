@@ -20,7 +20,7 @@ python3 $F done $C <repo> <platform> --status queued --note "<what you did>"
 
 Repeat `next` and `done` until `next` prints `null`. Then run `python3 $F status $C` and give the operator its output, plus `python3 $F next $C --kind approve --json` (needs a yes) and `--kind human` (needs them).
 
-To split work across agents, give each its own repos with `next --repo owner/name`. Two agents on one repo will collide on the branch.
+To split work across agents, give each its own repos with `next --repo owner/name`. Two agents on one repo will collide on the branch. Commands that change the ledger (`plan`, `report`, `done`) take a lock on `<control>/.lock` and write by rename, so agents sharing a control folder cannot overwrite each other's rows or leave a half-written file (Linux and macOS; Windows has no lock).
 
 ## A `prepare` task
 

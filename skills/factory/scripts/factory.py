@@ -21,7 +21,9 @@ platform, so one sign-in covers every repo). Platform facts stay in ../../plan/c
 """
 import argparse
 import csv
+import contextlib
 import datetime
+import io
 import json
 import os
 import re
@@ -75,11 +77,43 @@ def read_csv(path, cols):
         return [{c: row.get(c, "") for c in cols} for row in csv.DictReader(f)]
 
 
+def write_atomic(path, text):
+    """Write text so a crash leaves the old file or the new one, never half of either."""
+    tmp = f"{path}.tmp{os.getpid()}"
+    try:
+        with open(tmp, "w", encoding="utf-8", newline="") as f:
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+
+@contextlib.contextmanager
+def ledger_lock(control):
+    """Serialize commands that read, change and rewrite the ledger, so agents sharing a control folder cannot
+    overwrite each other's rows. Uses flock where the platform has it (Linux, macOS); elsewhere it does nothing."""
+    try:
+        import fcntl
+    except ImportError:
+        yield
+        return
+    with open(os.path.join(control, ".lock"), "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+
 def write_csv(path, cols, rows):
-    with open(path, "w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=cols, lineterminator="\n")
-        w.writeheader()
-        w.writerows(rows)
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=cols, lineterminator="\n")
+    w.writeheader()
+    w.writerows(rows)  # a bad row raises here, before the real file is touched
+    write_atomic(path, buf.getvalue())
 
 
 # ---------- plan: scan, merge, queue ----------
@@ -534,9 +568,10 @@ def init(control, paths):
     target = os.path.join(control, "portfolio.json")
     if os.path.exists(target):
         sys.exit(f"{target} exists; edit it instead")
-    with open(target, "w", encoding="utf-8") as f:
-        json.dump({"repos": repos}, f, indent=2)
-        f.write("\n")
+    write_atomic(target, json.dumps({"repos": repos}, indent=2) + "\n")
+    ignore = os.path.join(control, ".gitignore")
+    if not os.path.exists(ignore):
+        write_atomic(ignore, ".lock\n")  # ledger_lock's file
     print(f"wrote {target} with {len(repos)} repos; set priority, character, have and skip for each")
 
 
@@ -556,6 +591,15 @@ def main():
     a = ap.parse_args()
     if a.command == "init":
         return init(a.control, a.paths)
+    if a.command in ("plan", "report", "done"):
+        if not os.path.isdir(a.control):
+            sys.exit(f"{a.command}: no control folder at {a.control}; run init first")
+        with ledger_lock(a.control):
+            return run(a, ap)
+    return run(a, ap)
+
+
+def run(a, ap):
     pf, catalog = load_portfolio(a.control), scan.load_catalog()
     ledger_path = os.path.join(a.control, "LEDGER.csv")
     ledger = read_csv(ledger_path, LEDGER_COLS)
@@ -604,8 +648,7 @@ def main():
     if a.command == "plan":
         ledger, added, gone = plan(pf, catalog, ledger, a.date, get=None if a.offline else http_get)
         write_csv(ledger_path, LEDGER_COLS, ledger)
-        with open(os.path.join(a.control, "QUEUE.md"), "w", encoding="utf-8") as f:
-            f.write(queue(pf, catalog, ledger, added, gone, a.date))
+        write_atomic(os.path.join(a.control, "QUEUE.md"), queue(pf, catalog, ledger, added, gone, a.date))
         print(f"{len(added)} new, {len(gone)} no longer eligible; wrote QUEUE.md and LEDGER.csv")
     else:
         mpath = os.path.join(a.control, "METRICS.csv")
@@ -614,8 +657,7 @@ def main():
         kept = [m for m in read_csv(mpath, METRIC_COLS) if m["date"] != a.date]  # a re-run replaces that day's rows
         write_csv(mpath, METRIC_COLS, kept + rows)
         os.makedirs(os.path.join(a.control, "reports"), exist_ok=True)
-        with open(os.path.join(a.control, "reports", f"{a.date}.md"), "w", encoding="utf-8") as f:
-            f.write(md)
+        write_atomic(os.path.join(a.control, "reports", f"{a.date}.md"), md)
         print(md)
     return 0
 
