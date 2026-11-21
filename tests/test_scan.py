@@ -151,6 +151,21 @@ class ScanTest(unittest.TestCase):
                 bad.append(f"{where}: an install command must be an approve: step")
         self.assertEqual(bad, [])
 
+    def test_skips_agent_config_and_honours_declared_public_repo(self):
+        with tempfile.TemporaryDirectory() as d:
+            for rel in (".claude/worktrees/a/skills/x/SKILL.md", ".agents/skills/x/SKILL.md"):
+                os.makedirs(os.path.dirname(os.path.join(d, rel)))
+                open(os.path.join(d, rel), "w").write("---\nname: x\n---\n")
+            subprocess.run(["git", "init", "-q", d], check=True)
+            subprocess.run(["git", "-C", d, "remote", "add", "origin", "https://github.com/o/r.git"], check=True)
+            old, scan.is_public = scan.is_public, lambda origin: False  # as when gh and the API cannot tell
+            try:
+                self.assertNotIn("skill-md", scan.detect(d))
+                self.assertIn("not counted as public", scan.report(d, set(), [])[0])
+                self.assertNotIn("not counted as public", scan.report(d, {"github-public"}, [])[0])
+            finally:
+                scan.is_public = old
+
     def test_rejects_unknown_declared_asset(self):
         r = subprocess.run([sys.executable, SCAN, ".", "--have", "nope"], capture_output=True, text=True)
         self.assertNotEqual(r.returncode, 0)

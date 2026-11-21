@@ -22,7 +22,8 @@ CATALOG = os.path.join(os.path.dirname(HERE), "catalog.json")
 RECIPES = os.path.join(os.path.dirname(os.path.dirname(HERE)), "build", "recipes")
 SKIP = re.compile(r"(^|/)(node_modules|vendor|Pods|build|dist|\.build|DerivedData|\.dart_tool|\.next|target"
                   r"|\.venv|venv|__pycache__|\.git|\.audit|\.visibility|_archive|_worktrees"
-                  r"|tests?|__tests__|fixtures?|__fixtures__|testdata)(/|$)")  # a fixture is not the product's asset
+                  r"|tests?|__tests__|fixtures?|__fixtures__|testdata"
+                  r"|\.claude|\.agents)(/|$)")  # fixtures and the repo's own agent config/worktrees are not the product's assets
 BUILD_OUTPUT = {"build", "dist", "target"}  # skipped as build output unless git tracks files in them (skills/build)
 MAX_FILES = 20_000
 
@@ -241,8 +242,9 @@ def report(root, have_extra, catalog):
     truncated = found.pop("truncated", None)
     if truncated:
         out += [f"Incomplete scan: {truncated}.", ""]
-    if "github-remote" in found:
-        out.append(f"- [ ] `github-public`: {found.pop('github-remote')}")
+    remote = found.pop("github-remote", None)
+    if remote and "github-public" not in have_extra:  # once declared after asking, the note no longer applies
+        out.append(f"- [ ] `github-public`: {remote}")
     for a, (kind, desc) in ASSETS.items():
         if a in found:
             out.append(f"- [x] `{a}`: {desc} ({found[a]})")
