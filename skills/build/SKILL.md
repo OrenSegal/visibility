@@ -1,6 +1,6 @@
 ---
 name: build
-description: Build the one missing asset that unlocks the most listings for a project - a remote MCP server, server.json, an API-wrapper CLI, an OpenAPI file, llms.txt docs, a VS Code or Raycast extension - or a platform's own integration (n8n node, Linear app, ChatGPT app), from a short recipe sourced from the platform's docs.
+description: Build the one missing asset that unlocks the most listings for a project - a remote MCP server, server.json, a one-job browser extension, an API-wrapper CLI, an OpenAPI file, llms.txt docs, a VS Code or Raycast extension - or a platform's own integration (Zapier app, n8n node, Make app, Notion connection), from a short recipe sourced from the platform's docs.
 disable-model-invocation: true
 argument-hint: "<asset-id | platform-id>"
 metadata:

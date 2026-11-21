@@ -1,5 +1,5 @@
 {
-  "about": "One row per platform. requires = asset ids from scripts/scan.py ASSETS (a|b means either). dr = domain rating as claimed by the source, never measured here; null = unknown. verified: yes = the submission flow and the listing's link were both observed; flow = the flow was checked on the official page or by use, the link was not; no = secondhand. steps: claude = Claude does it locally; approve = Claude runs it after an explicit yes (publish, PR, upload); human = the user does it (accounts, payment, DNS, forms, email). files = repo paths whose presence means the claude: steps are done (the factory queues the row past them). see = pointer to the fact's other home instead of steps.",
+  "about": "One row per platform. requires = asset ids from scripts/scan.py ASSETS (a|b means either). dr = domain rating as claimed by the source, never measured here; null = unknown. verified: yes = the submission flow and the listing's link were both observed; flow = the flow was checked on the official page or by use, the link was not; no = secondhand. traffic = the host the public listing page lives on and its rank in the Tranco top-1M list including subdomains (list 46YVX, 2026-11-20; https://tranco-list.eu/list/46YVX/1000000); rank null = not in the top million, so the site gets little traffic; no traffic field = no public listing page (in-app only, own repo, or a payment rail). It measures the whole host, not the listing page. traffic = the host the public listing page lives on and its rank in the Tranco top-1M list including subdomains (list 46YVX, 2026-11-20; https://tranco-list.eu/list/46YVX/1000000); rank null = not in the top million, so the site gets little traffic; no traffic field = no listing host to measure (in-app only, a page inside github.com, whose host rank says nothing about one repo, or a payment rail). It measures the whole host, not the listing page. steps: claude = Claude does it locally; approve = Claude runs it after an explicit yes (publish, PR, upload); human = the user does it (accounts, payment, DNS, forms, email). files = repo paths whose presence means the claude: steps are done (the factory queues the row past them). see = pointer to the fact's other home instead of steps.",
   "platforms": [
     {
       "id": "mcp-registry",
@@ -31,7 +31,11 @@
       ],
       "notes": "Publish here before Glama/Smithery: aggregators ingest it. Registry is labeled preview. Thread says DNS-only; the registry docs also allow GitHub namespace login, which needs no domain.",
       "source": "thread + marketingskills directory-list Tier 4A",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "registry.modelcontextprotocol.io",
+        "rank": null
+      }
     },
     {
       "id": "smithery",
@@ -57,7 +61,11 @@
       ],
       "source": "https://smithery.ai/future (loaded 2026-11-08)",
       "verified": "no",
-      "notes": "smithery.ai/future (loaded 2026-11-08): 'On October 31, 2026, we're shutting down Smithery's connection management services.' Smithery stays a public, non-proxied registry with 'a curated set of verified servers'; it does not say how new servers get listed, and smithery.ai/new returns 404. Old flow (thread): paste URL at /new, apiKey header param, TXT verification, badge."
+      "notes": "smithery.ai/future (loaded 2026-11-08): 'On October 31, 2026, we're shutting down Smithery's connection management services.' Smithery stays a public, non-proxied registry with 'a curated set of verified servers'; it does not say how new servers get listed, and smithery.ai/new returns 404. Old flow (thread): paste URL at /new, apiKey header param, TXT verification, badge.",
+      "traffic": {
+        "host": "smithery.ai",
+        "rank": 197113
+      }
     },
     {
       "id": "glama",
@@ -86,7 +94,11 @@
       ],
       "source": "thread",
       "verified": "no",
-      "notes": "Repo listings: glama.json with $schema and maintainers at the repo root (required for org repos). Remote connectors: /.well-known/glama.json, maintainer email must match the Glama account."
+      "notes": "Repo listings: glama.json with $schema and maintainers at the repo root (required for org repos). Remote connectors: /.well-known/glama.json, maintainer email must match the Glama account.",
+      "traffic": {
+        "host": "glama.ai",
+        "rank": 86806
+      }
     },
     {
       "id": "mcp-directories",
@@ -104,7 +116,11 @@
       "effort": "hours",
       "see": "marketingskills:directory-submissions references/directory-list.md Tier 4B and 4D",
       "source": "marketingskills",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "mcp.so",
+        "rank": 255035
+      }
     },
     {
       "id": "claude-connectors",
@@ -127,7 +143,11 @@
       ],
       "notes": "Remote MCP servers are submitted as connectors, separately from plugins. The thread's Team-plan Settings -> Directory path is older; the portal is current per Anthropic docs.",
       "source": "thread + research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "claude.ai",
+        "rank": 511
+      }
     },
     {
       "id": "vercel-connectors",
@@ -146,7 +166,39 @@
         "human: Get Started -> Create Connector, fill in the form, submit"
       ],
       "source": "thread",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "vercel.com",
+        "rank": 4254
+      }
+    },
+    {
+      "id": "zapier",
+      "name": "Zapier integration",
+      "category": "automation",
+      "submit": "https://developer.zapier.com",
+      "listing": "zapier.com/apps/<app>/integrations",
+      "dr": 91,
+      "requires": [
+        "public-api",
+        "test-account"
+      ],
+      "cost": "free trial",
+      "review": "manual, a few days",
+      "link": "dedicated app page",
+      "effort": "days",
+      "steps": [
+        "claude: map the API's auth and main actions to triggers/actions (recipes/zapier.md)",
+        "human: build the integration in the Zapier Platform UI (REST), test every trigger and action",
+        "human: invite integration-testing@zapier.com as the reviewer test account, then submit for public review"
+      ],
+      "notes": "No official page documents building a public integration from an MCP server (the thread's path); the documented route is a Platform UI REST integration.",
+      "source": "https://docs.zapier.com/platform (loaded 2026-11-08)",
+      "verified": "no",
+      "traffic": {
+        "host": "zapier.com",
+        "rank": 4292
+      }
     },
     {
       "id": "manus",
@@ -170,7 +222,11 @@
         "human: send it through the Manus help centre and provide a test account if asked"
       ],
       "source": "thread",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "manus.im",
+        "rank": 8710
+      }
     },
     {
       "id": "composio",
@@ -192,7 +248,11 @@
       ],
       "notes": "Needs an OpenAPI file or a remote MCP server; either works.",
       "source": "thread",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "composio.dev",
+        "rank": 45270
+      }
     },
     {
       "id": "chatgpt-apps",
@@ -224,7 +284,11 @@
       ],
       "notes": "Auth: none, OAuth, or mixed; API-key/bearer flows unsupported and nonempty server headers rejected. One MCP server per plugin; ZIPs with apps/.app.json or lifecycle hooks can't be submitted. Codex uses .codex-plugin/plugin.json and .mcp.json.",
       "source": "https://developers.openai.com/apps-sdk/deploy/submission (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "chatgpt.com",
+        "rank": 134
+      }
     },
     {
       "id": "openai-skills-plugin",
@@ -250,7 +314,11 @@
       ],
       "notes": "The submission guide: 'Skills-only plugins don't need MCP review cases or a demo recording.' Same directory as chatgpt-apps.",
       "source": "https://developers.openai.com/apps-sdk/deploy/submission (loaded 2026-11-08)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "chatgpt.com",
+        "rank": 134
+      }
     },
     {
       "id": "cursor-directory",
@@ -273,7 +341,11 @@
       ],
       "notes": "Community list, not Cursor's curated store. 2026-11 forum report (unverified): plugin publishing now centralised on cursor.directory 'Submit a Plugin', needs .cursor-plugin/plugin.json, review up to ~2 weeks. Re-check before use. 2026-11-08: submit page confirmed (auto-detect from a GitHub repo, follows the Open Plugins standard, sign-in required).",
       "source": "thread",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "cursor.directory",
+        "rank": 590378
+      }
     },
     {
       "id": "skills-sh",
@@ -296,7 +368,11 @@
       ],
       "source": "thread + used 2026-11-07",
       "verified": "yes",
-      "notes": "Listing appeared immediately after one install at skills.sh/<owner>/<repo> (lowercased). Ranking comes from install telemetry. Skill folders are copied whole, so scripts beside SKILL.md ship too."
+      "notes": "Listing appeared immediately after one install at skills.sh/<owner>/<repo> (lowercased). Ranking comes from install telemetry. Skill folders are copied whole, so scripts beside SKILL.md ship too.",
+      "traffic": {
+        "host": "skills.sh",
+        "rank": 82885
+      }
     },
     {
       "id": "clawhub",
@@ -319,7 +395,11 @@
       ],
       "notes": "One listing per skill folder, so a skill that reads files from a sibling needs a fallback. Prefix slugs with the product name. Check state with clawhub inspect <slug>. Malicious skills were found on ClawHub in Feb 2026; keep the source public. Publish from a clean `git archive` export of the pushed commit (local __pycache__ otherwise uploads), excluding any .claude-plugin/ in the skill folder: with a plugin.json present the CLI refuses with 'This looks like a plugin' (observed 2026-11-08). Pass --owner and --source-repo/--source-commit/--source-path so the listing records the repo.",
       "source": "thread + used 2026-11-07",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "clawhub.ai",
+        "rank": 91123
+      }
     },
     {
       "id": "hermes",
@@ -352,6 +432,96 @@
       "notes": "The PR must come from the repo owner or a major contributor; catalog CI must be green. Test results are not required."
     },
     {
+      "id": "emdash",
+      "name": "EmDash plugin directory (Cloudflare CMS)",
+      "category": "cms",
+      "submit": "emdash-plugin publish (CLI, Bluesky login)",
+      "dr": 76,
+      "requires": [
+        "public-api",
+        "website"
+      ],
+      "cost": "free",
+      "review": "manual: listing stays unavailable until approved",
+      "link": "dofollow via author.url",
+      "effort": "hours",
+      "artifacts": [
+        "small EmDash plugin calling your API",
+        "manifest with author.url = your site"
+      ],
+      "steps": [
+        "claude: build the plugin with emdash-plugin.jsonc, putting the product website in author.url (recipes/emdash.md)",
+        "human: emdash-plugin login with an atproto handle (Bluesky; ideally your domain as handle)",
+        "approve: emdash-plugin publish",
+        "claude: check the listing after approval"
+      ],
+      "source": "https://github.com/emdash-cms/emdash/blob/main/packages/plugin-cli/README.md (loaded 2026-11-08)",
+      "verified": "yes",
+      "notes": "Publishing is marked EXPERIMENTAL in the plugin-cli README.",
+      "traffic": {
+        "host": "emdashcms.com",
+        "rank": 821263
+      }
+    },
+    {
+      "id": "albato",
+      "name": "Albato",
+      "category": "automation",
+      "submit": "Albato App Integrator",
+      "dr": 72,
+      "requires": [
+        "public-api",
+        "test-account"
+      ],
+      "cost": "free",
+      "review": "manual moderation",
+      "link": "app page",
+      "effort": "days",
+      "steps": [
+        "claude: map API endpoints to triggers and actions",
+        "human: build them in the no-code App Integrator, add description, logo, test account",
+        "human: Submit for moderation"
+      ],
+      "source": "thread",
+      "verified": "no",
+      "traffic": {
+        "host": "albato.com",
+        "rank": 273671
+      }
+    },
+    {
+      "id": "make",
+      "name": "Make verified app",
+      "category": "automation",
+      "submit": "https://www.make.com (Custom Apps -> Request review)",
+      "dr": 90,
+      "requires": [
+        "public-api",
+        "openapi",
+        "docs-site"
+      ],
+      "cost": "free plan",
+      "review": "manual",
+      "link": "dofollow (claimed)",
+      "effort": "days",
+      "artifacts": [
+        "connection asking for the API key",
+        "one module per main action (create, list, delete)"
+      ],
+      "steps": [
+        "claude: build the app with an AI coding agent using integromat/make-apps-skill and the Make TypeScript SDK (the VS Code Make Apps Editor is deprecated); see recipes/make.md",
+        "human: create the custom app in Make and paste the definition",
+        "human: run every module in a real scenario, plus one scenario showing an API error; collect the run links",
+        "human: make all modules visible, fill in the review form with run links and docs URL, Request review"
+      ],
+      "source": "thread",
+      "verified": "no",
+      "traffic": {
+        "host": "make.com",
+        "rank": 9234
+      }
+    },
+    {
       "id": "n8n",
       "name": "n8n verified community node",
       "category": "automation",
@@ -378,7 +548,11 @@
       ],
       "source": "https://docs.n8n.io/integrations/creating-nodes/deploy/submit-community-nodes/ (loaded 2026-11-08)",
       "verified": "no",
-      "notes": "Since 2026-05-01 verified nodes must be published to npm from GitHub Actions with provenance. usableAsTool and the demo-video stage come from forum posts, not official pages."
+      "notes": "Since 2026-05-01 verified nodes must be published to npm from GitHub Actions with provenance. usableAsTool and the demo-video stage come from forum posts, not official pages.",
+      "traffic": {
+        "host": "n8n.io",
+        "rank": 7446
+      }
     },
     {
       "id": "linear",
@@ -406,7 +580,114 @@
         "human: send the form answers and assets to integrations@linear.app"
       ],
       "source": "thread",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "linear.app",
+        "rank": 10155
+      }
+    },
+    {
+      "id": "notion",
+      "name": "Notion Marketplace",
+      "category": "integration",
+      "submit": "Notion developer settings -> Publish to Marketplace",
+      "listing": "notion.com/connections/<name>",
+      "dr": 90,
+      "requires": [
+        "public-api"
+      ],
+      "cost": "free",
+      "review": "manual, 5-10 business days",
+      "link": "dofollow (claimed)",
+      "effort": "days",
+      "steps": [
+        "claude: build a simple flow that writes your app's data into a Notion database",
+        "human: create a public connection with installation scope Any workspace (cannot be changed later)",
+        "human: Publish to Marketplace: name, description, category, logo, screenshots; submit"
+      ],
+      "source": "thread + marketingskills Tier 7",
+      "verified": "no",
+      "traffic": {
+        "host": "notion.com",
+        "rank": 1681
+      }
+    },
+    {
+      "id": "chrome-web-store",
+      "name": "Chrome Web Store",
+      "category": "extension",
+      "submit": "https://chrome.google.com/webstore/devconsole",
+      "dr": 96,
+      "requires": [
+        "browser-ext"
+      ],
+      "cost": "$5 one-time",
+      "review": "manual, days",
+      "link": "listing on Google's domain",
+      "effort": "hours",
+      "steps": [
+        "claude: build a one-job extension around your API and zip it",
+        "human: register as a developer ($5)",
+        "human: upload the zip, fill in description, icon, screenshots, submit"
+      ],
+      "source": "thread",
+      "verified": "no",
+      "traffic": {
+        "host": "chromewebstore.google.com",
+        "rank": 1091
+      }
+    },
+    {
+      "id": "edge-addons",
+      "name": "Microsoft Edge Add-ons",
+      "category": "extension",
+      "submit": "https://partner.microsoft.com/dashboard/microsoftedge",
+      "dr": 96,
+      "requires": [
+        "browser-ext"
+      ],
+      "cost": "free",
+      "review": "manual, days",
+      "link": "developer name links to site (claimed dofollow)",
+      "effort": "hours",
+      "steps": [
+        "human: register in Partner Center as an Edge Add-ons developer",
+        "human: upload the same Chromium zip, fill in the listing, submit"
+      ],
+      "source": "thread",
+      "verified": "no",
+      "traffic": {
+        "host": "microsoftedge.microsoft.com",
+        "rank": 294646
+      }
+    },
+    {
+      "id": "firefox-addons",
+      "name": "Firefox Add-ons (AMO)",
+      "category": "extension",
+      "submit": "https://addons.mozilla.org/developers/",
+      "dr": 96,
+      "requires": [
+        "browser-ext"
+      ],
+      "cost": "free",
+      "review": "manual",
+      "link": "listing on Mozilla's domain",
+      "effort": "hours",
+      "artifacts": [
+        "manifest browser_specific_settings.gecko: extension id and data_collection_permissions"
+      ],
+      "steps": [
+        "claude: add the Firefox block to the manifest; if bundled, prepare a source zip with build steps",
+        "human: create an AMO developer account",
+        "human: upload the zip (and source zip)"
+      ],
+      "source": "thread",
+      "verified": "no",
+      "traffic": {
+        "host": "addons.mozilla.org",
+        "rank": 24596
+      }
     },
     {
       "id": "npm-cli",
@@ -431,7 +712,11 @@
         "approve: npm publish --access public"
       ],
       "source": "thread",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "npmjs.com",
+        "rank": 2989
+      }
     },
     {
       "id": "rapidapi",
@@ -455,7 +740,11 @@
         "human: Monetize: add a free $0 plan, confirm ownership, switch Private to Public"
       ],
       "source": "thread",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "rapidapi.com",
+        "rank": 23345
+      }
     },
     {
       "id": "postman",
@@ -477,7 +766,11 @@
         "human: create a public workspace, import the OpenAPI file, pin the collection"
       ],
       "source": "thread",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "postman.com",
+        "rank": 4761
+      }
     },
     {
       "id": "fern-agent-score",
@@ -504,7 +797,11 @@
         "human: Score docs with the docs URL; optionally Request listing"
       ],
       "source": "thread",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "buildwithfern.com",
+        "rank": 359456
+      }
     },
     {
       "id": "claude-plugin-directory",
@@ -530,7 +827,11 @@
       ],
       "notes": "Approved plugins are mirrored nightly to anthropics/claude-plugins-community. anthropics/claude-plugins-official is partner-only. clau.de/plugin-directory-submission links in old READMEs are stale. 10 submissions per org per 24h.",
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "claude.com",
+        "rank": 2898
+      }
     },
     {
       "id": "own-marketplace",
@@ -578,7 +879,11 @@
       ],
       "source": "research + used 2026-11-07",
       "verified": "yes",
-      "notes": "Status shows under Your submissions on the submit page. Independent directory, not affiliated with Anthropic."
+      "notes": "Status shows under Your submissions on the submit page. Independent directory, not affiliated with Anthropic.",
+      "traffic": {
+        "host": "claudemarketplaces.com",
+        "rank": null
+      }
     },
     {
       "id": "aitmpl",
@@ -600,7 +905,11 @@
       ],
       "source": "github.com/davila7/claude-code-templates CONTRIBUTING.md and CLAUDE.md (loaded 2026-11-08)",
       "verified": "yes",
-      "notes": "CI runs SkillSpector (HIGH/CRITICAL blocks), claude plugin validate and AI review; triage labels follow. Upstream changes reach users only via a PR that bumps commit."
+      "notes": "CI runs SkillSpector (HIGH/CRITICAL blocks), claude plugin validate and AI review; triage labels follow. Upstream changes reach users only via a PR that bumps commit.",
+      "traffic": {
+        "host": "aitmpl.com",
+        "rank": 652629
+      }
     },
     {
       "id": "awesome-claude-code",
@@ -643,7 +952,11 @@
       ],
       "notes": "Indexed by a val.town crawler; trigger and cadence undocumented. A repo created the same day was not yet indexed (2026-11-08).",
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "claude-plugins.dev",
+        "rank": null
+      }
     },
     {
       "id": "buildwithclaude",
@@ -666,7 +979,11 @@
       ],
       "source": "github.com/davepoon/buildwithclaude CONTRIBUTING.md, scripts/fetch-plugins.js (loaded 2026-11-08)",
       "verified": "yes",
-      "notes": "There is no web submit form (/contribute is 404). Merges auto-deploy to buildwithclaude.com."
+      "notes": "There is no web submit form (/contribute is 404). Merges auto-deploy to buildwithclaude.com.",
+      "traffic": {
+        "host": "buildwithclaude.com",
+        "rank": null
+      }
     },
     {
       "id": "docker-mcp",
@@ -688,7 +1005,11 @@
         "approve: open the PR; Docker builds and publishes the image"
       ],
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "hub.docker.com",
+        "rank": 88438
+      }
     },
     {
       "id": "gemini-cli-ext",
@@ -717,7 +1038,11 @@
       ],
       "source": "https://geminicli.com/docs/extensions/releasing/ (loaded 2026-11-08)",
       "verified": "yes",
-      "notes": "Manifest must sit at the repo root or release-archive root. Claude-only frontmatter (disable-model-invocation) is ignored by Gemini."
+      "notes": "Manifest must sit at the repo root or release-archive root. Claude-only frontmatter (disable-model-invocation) is ignored by Gemini.",
+      "traffic": {
+        "host": "geminicli.com",
+        "rank": 206878
+      }
     },
     {
       "id": "apis-guru",
@@ -737,7 +1062,11 @@
         "human: submit the public OpenAPI spec URL with Add API"
       ],
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "apis.guru",
+        "rank": null
+      }
     },
     {
       "id": "github-marketplace-action",
@@ -780,7 +1109,11 @@
         "approve: npx @vscode/vsce@4.1.0 publish --oidc"
       ],
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "marketplace.visualstudio.com",
+        "rank": 23088
+      }
     },
     {
       "id": "open-vsx",
@@ -800,7 +1133,11 @@
         "human: run npx ovsx@1.4.0 create-namespace <pub> -p <token> && npx ovsx@1.4.0 publish -p <token> in your own shell, so the token stays out of the session"
       ],
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "open-vsx.org",
+        "rank": 41889
+      }
     },
     {
       "id": "jetbrains",
@@ -820,7 +1157,11 @@
         "human: Upload plugin with tags, channel, EULA or source link"
       ],
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "plugins.jetbrains.com",
+        "rank": 144777
+      }
     },
     {
       "id": "raycast",
@@ -840,7 +1181,11 @@
         "approve: npm run publish (GitHub auth), then answer review comments"
       ],
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "raycast.com",
+        "rank": 24161
+      }
     },
     {
       "id": "alfred",
@@ -861,7 +1206,11 @@
         "human: wait for an invitation"
       ],
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "alfred.app",
+        "rank": null
+      }
     },
     {
       "id": "obsidian",
@@ -883,7 +1232,131 @@
       ],
       "notes": "PRs to obsidian-releases are the old path.",
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "obsidian.md",
+        "rank": 6660
+      }
+    },
+    {
+      "id": "slack",
+      "name": "Slack Marketplace",
+      "category": "integration",
+      "submit": "api.slack.com/apps > app settings",
+      "dr": 89,
+      "requires": [
+        "slack-app",
+        "website"
+      ],
+      "cost": "free",
+      "review": "manual",
+      "link": "Marketplace listing",
+      "effort": "weeks",
+      "steps": [
+        "claude: check OAuth state, signed requests, privacy policy, Add to Slack landing page",
+        "human: reach 10+ active workspaces or 20+ MAU, then submit from app settings"
+      ],
+      "source": "research 2026-11-07 (official page loaded) (requirements)",
+      "verified": "no",
+      "traffic": {
+        "host": "slack.com",
+        "rank": 354
+      }
+    },
+    {
+      "id": "discord",
+      "name": "Discord App Directory",
+      "category": "integration",
+      "submit": "Developer Portal > App > Discovery",
+      "dr": null,
+      "requires": [
+        "discord-app"
+      ],
+      "cost": "free",
+      "review": "Discord review",
+      "link": "directory page",
+      "effort": "days",
+      "steps": [
+        "human: verify the app, then enable Discovery in the Developer Portal"
+      ],
+      "source": "research 2026-11-07 (secondhand)",
+      "verified": "no",
+      "traffic": {
+        "host": "discord.com",
+        "rank": 230
+      }
+    },
+    {
+      "id": "wordpress",
+      "name": "WordPress.org plugin directory",
+      "category": "cms",
+      "submit": "https://wordpress.org/plugins/developers/add/",
+      "dr": 99,
+      "requires": [
+        "wordpress-plugin"
+      ],
+      "cost": "free",
+      "review": "manual, 1-10 days",
+      "link": "plugin page with in-dashboard install",
+      "effort": "days",
+      "steps": [
+        "claude: GPL-compatible license, Plugin Name header, readme.txt per guidelines",
+        "human: upload the zip with a wp.org login, fix review notes"
+      ],
+      "source": "research 2026-11-07 (official page loaded)",
+      "verified": "yes",
+      "traffic": {
+        "host": "wordpress.org",
+        "rank": 80
+      }
+    },
+    {
+      "id": "figma",
+      "name": "Figma Community",
+      "category": "integration",
+      "submit": "Figma desktop > Plugins > Manage plugins > Publish",
+      "dr": null,
+      "requires": [
+        "figma-plugin"
+      ],
+      "cost": "paid Figma plan",
+      "review": "manual; data-security disclosure up to 2 weeks",
+      "link": "Community page",
+      "effort": "days",
+      "steps": [
+        "human: with 2FA on, Publish from the desktop app: name, tagline, 128px icon, 1920x1080 thumbnail"
+      ],
+      "source": "research 2026-11-07 (official page loaded)",
+      "verified": "yes",
+      "traffic": {
+        "host": "figma.com",
+        "rank": 1133
+      }
+    },
+    {
+      "id": "shopify",
+      "name": "Shopify App Store",
+      "category": "integration",
+      "submit": "Partner Dashboard > App Store review",
+      "dr": null,
+      "requires": [
+        "shopify-app",
+        "test-account"
+      ],
+      "cost": "$19 one-time registration (shopify.dev revenue-share page, loaded 2026-11-08)",
+      "review": "manual",
+      "link": "App Store listing",
+      "effort": "weeks",
+      "steps": [
+        "claude: compliance webhooks, automated checks passing",
+        "human: listing, 1200px icon, emergency contact, protected-data request, submit"
+      ],
+      "source": "research 2026-11-07 (official page loaded) (fee secondhand)",
+      "verified": "no",
+      "traffic": {
+        "host": "apps.shopify.com",
+        "rank": 100054
+      }
     },
     {
       "id": "pypi",
@@ -905,7 +1378,11 @@
         "approve: tag a release to publish"
       ],
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "pypi.org",
+        "rank": 3595
+      }
     },
     {
       "id": "crates",
@@ -926,7 +1403,11 @@
         "approve: cargo publish"
       ],
       "source": "research 2026-11-07 (official page loaded)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "crates.io",
+        "rank": 10196
+      }
     },
     {
       "id": "swift-package-index",
@@ -953,7 +1434,11 @@
       ],
       "notes": "The index rebuilds packages on every new tag, so the listing stays current without resubmitting.",
       "source": "https://swiftpackageindex.com/add-a-package (loaded 2026-11-20)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "swiftpackageindex.com",
+        "rank": 261837
+      }
     },
     {
       "id": "homebrew-tap",
@@ -975,6 +1460,31 @@
       ],
       "source": "research 2026-11-07 (secondhand)",
       "verified": "no"
+    },
+    {
+      "id": "app-store",
+      "name": "Apple App Store / Mac App Store",
+      "category": "app",
+      "submit": "https://appstoreconnect.apple.com",
+      "dr": null,
+      "requires": [
+        "ios-app",
+        "apple-dev"
+      ],
+      "cost": "$99/yr",
+      "review": "manual, usually 1-3 days",
+      "link": "App Store page",
+      "effort": "days",
+      "steps": [
+        "human: enroll, create the app in App Store Connect, upload from Xcode, submit"
+      ],
+      "notes": "Only for a working, launch-ready app.",
+      "source": "research 2026-11-07 (secondhand)",
+      "verified": "no",
+      "traffic": {
+        "host": "apps.apple.com",
+        "rank": 53
+      }
     },
     {
       "id": "cursor-marketplace",
@@ -1002,7 +1512,11 @@
       ],
       "notes": "Distinct from cursor.directory (community). Docs: all marketplace plugins must be open source. Publisher terms (search result) forbid charging users. A forum report says one submission waited 25+ days.",
       "source": "https://cursor.com/docs/plugins (loaded 2026-11-08)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "cursor.com",
+        "rank": 3766
+      }
     },
     {
       "id": "cline-mcp-marketplace",
@@ -1059,7 +1573,11 @@
       ],
       "notes": "Docs say MCP-server extensions are being deprecated in favor of the MCP registry; publish there too. Good fit for language/theme/debugger extensions.",
       "source": "https://zed.dev/docs/extensions/publishing/prerequisites (loaded 2026-11-08)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "zed.dev",
+        "rank": 24170
+      }
     },
     {
       "id": "kiro-powers",
@@ -1089,7 +1607,11 @@
       ],
       "notes": "Directory lists ~76 partner/community powers. Submission page addresses organizations; unclear if solo devs are accepted.",
       "source": "https://kiro.dev/powers/ and https://kiro.dev/docs/powers/create/ (loaded 2026-11-08)",
-      "verified": "yes"
+      "verified": "yes",
+      "traffic": {
+        "host": "kiro.dev",
+        "rank": 8301
+      }
     },
     {
       "id": "goose-extensions",
@@ -1113,7 +1635,389 @@
       ],
       "notes": "Process inferred from merged PR #7328, not a documented guide. Directory moved to goose-docs.ai.",
       "source": "https://github.com/block/goose/pull/7328 (search only, not loaded 2026-11-08)",
-      "verified": "no"
+      "verified": "no",
+      "traffic": {
+        "host": "goose-docs.ai",
+        "rank": 778574
+      }
+    },
+    {
+      "id": "power-platform-connector",
+      "name": "Microsoft Power Platform certified connector",
+      "category": "automation",
+      "submit": "https://learn.microsoft.com/en-us/connectors/custom-connectors/submit-certification",
+      "listing": "learn.microsoft.com/connectors/<name> page + certified connector pages on Power Automate/Power Apps/Copilot Studio",
+      "dr": null,
+      "requires": [
+        "power-connector",
+        "public-api"
+      ],
+      "cost": "free",
+      "review": "manual Microsoft certification",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": [
+        "apiDefinition.swagger.json",
+        "apiProperties.json",
+        "icon.png"
+      ],
+      "steps": [
+        "claude: build the custom connector (apiDefinition.swagger.json + apiProperties.json) from the OpenAPI file",
+        "human: test in a Power Platform environment",
+        "approve: independent publishers: open the PR to microsoft/PowerPlatformConnectors",
+        "human: verified publishers: submit via Partner Center"
+      ],
+      "notes": "Free for both verified (you own the API) and independent publishers. Auth must be OAuth2, API key, basic or anonymous. Also usable as tools in Copilot Studio; MCP servers have a separate certification. Lands as a Premium connector.",
+      "source": "https://learn.microsoft.com/en-us/connectors/custom-connectors/submit-certification (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "learn.microsoft.com",
+        "rank": 3581
+      }
+    },
+    {
+      "id": "teams-store",
+      "name": "Microsoft Teams Store",
+      "category": "integration",
+      "submit": "https://partner.microsoft.com (Partner Center)",
+      "listing": "Teams Store entry, auto-listed on appsource.microsoft.com",
+      "dr": null,
+      "requires": [
+        "teams-app",
+        "test-account"
+      ],
+      "cost": "free",
+      "review": "manual validation; first report ~24 working hours, iterative",
+      "link": "AppSource listing page",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: create a Partner Center developer account and complete publisher verification",
+        "claude: write the test notes",
+        "human: validate the app package in the Teams Developer Portal (signed in)",
+        "human: submit through Partner Center and fix the validation report"
+      ],
+      "notes": "Apps can link to a transactable SaaS offer (see microsoft-marketplace). Channel-enabled apps need manifest 1.25+ since July 2026.",
+      "source": "https://learn.microsoft.com/en-us/microsoftteams/platform/concepts/deploy-and-publish/appsource/publish (loaded 2026-11-08)",
+      "verified": "yes",
+      "traffic": {
+        "host": "appsource.microsoft.com",
+        "rank": 780152
+      }
+    },
+    {
+      "id": "google-workspace-marketplace",
+      "name": "Google Workspace Marketplace",
+      "category": "integration",
+      "submit": "https://console.cloud.google.com (Marketplace SDK)",
+      "listing": "workspace.google.com/marketplace/app/<app> listing",
+      "dr": null,
+      "requires": [
+        "workspace-addon",
+        "website"
+      ],
+      "cost": "free",
+      "review": "manual Marketplace review; OAuth verification may also be needed",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: enable the Marketplace SDK in a Cloud project and configure the app",
+        "human: complete OAuth consent/verification if sensitive scopes are used",
+        "human: create the store listing (logo, website) and submit as Public"
+      ],
+      "notes": "Public vs private cannot be switched after publishing. OAuth verification for restricted scopes can add weeks.",
+      "source": "https://developers.google.com/workspace/marketplace/how-to-publish (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "workspace.google.com",
+        "rank": 1461
+      }
+    },
+    {
+      "id": "hubspot-marketplace",
+      "name": "HubSpot App Marketplace",
+      "category": "integration",
+      "submit": "https://developers.hubspot.com",
+      "listing": "ecosystem.hubspot.com/marketplace/apps/<app> listing",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account",
+        "demo-video"
+      ],
+      "cost": "free",
+      "review": "manual (HubSpot Ecosystem Quality team)",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: build a public OAuth app in a HubSpot developer account",
+        "human: fill the 7 listing tabs (icon 800x800, categories, demo video, screenshots, pricing, support, testing info)",
+        "human: Validate & submit as Super Admin"
+      ],
+      "notes": "Loaded page omits the App listing requirements page; HubSpot has historically required a minimum number of active installs before listing. Check before building.",
+      "source": "https://developers.hubspot.com/docs/apps/developer-platform/list-apps/listing-your-app/listing-your-app (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "ecosystem.hubspot.com",
+        "rank": null
+      }
+    },
+    {
+      "id": "atlassian-marketplace",
+      "name": "Atlassian Marketplace (free listing)",
+      "category": "integration",
+      "submit": "https://developer.atlassian.com/console",
+      "listing": "marketplace.atlassian.com/apps/<id> listing",
+      "dr": null,
+      "requires": [
+        "forge-app"
+      ],
+      "cost": "free",
+      "review": "manual, aims for ~1 week",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "claude: build the Forge app and implement personal-data report/erase flows",
+        "human: enable sharing and publish the developer space; add End User Terms and privacy/security tab",
+        "human: submit the listing and justify every scope and remote host"
+      ],
+      "notes": "Paid version: see atlassian-paid.",
+      "source": "https://developer.atlassian.com/platform/marketplace/listing-forge-apps/ (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "marketplace.atlassian.com",
+        "rank": 490568
+      }
+    },
+    {
+      "id": "monday-marketplace",
+      "name": "monday.com apps marketplace",
+      "category": "integration",
+      "submit": "https://developer.monday.com (Developer Center > Submit app)",
+      "listing": "monday.com/marketplace listing",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account"
+      ],
+      "cost": "free",
+      "review": "manual 4-phase review; first response within 72 business hours",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "claude: build the app on the monday apps framework using the Vibe design system",
+        "human: publish from the Share tab and complete the Submit app form",
+        "human: resolve items on the review board until approved"
+      ],
+      "notes": "Apps built mainly with no-code tools or AI 'vibe code' are not eligible; clones get declined. Paid version: see monday-paid.",
+      "source": "https://developer.monday.com/apps/docs/submit-your-app (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "monday.com",
+        "rank": 4540
+      }
+    },
+    {
+      "id": "zoom-marketplace",
+      "name": "Zoom App Marketplace",
+      "category": "integration",
+      "submit": "https://marketplace.zoom.us/develop",
+      "listing": "marketplace.zoom.us/apps/<id> listing",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account"
+      ],
+      "cost": "free (no fee stated)",
+      "review": "manual: Marketplace Operations then Security review",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: create the app in the Zoom developer portal",
+        "claude: write Terms of Use, Privacy Policy, docs and support URL pages",
+        "human: submit for the two-phase review"
+      ],
+      "notes": "Unlisted/beta options exist if public review is too heavy.",
+      "source": "https://developers.zoom.us/docs/distribute/ (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "marketplace.zoom.us",
+        "rank": 75605
+      }
+    },
+    {
+      "id": "intercom-app-store",
+      "name": "Intercom App Store",
+      "category": "integration",
+      "submit": "https://developers.intercom.com (Developer Hub)",
+      "listing": "intercom.com/app-store listing with start guide",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account",
+        "demo-video"
+      ],
+      "cost": "free",
+      "review": "manual, up to 7 business days",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: create a public OAuth app in the Developer Hub",
+        "claude: write the Start Guide and listing copy (name must not contain 'Intercom')",
+        "human: record an end-to-end video (OAuth install, features, uninstall) and submit",
+        "human: after approval (public, unlisted) switch it to listed"
+      ],
+      "notes": "No install minimum on the loaded page.",
+      "source": "https://developers.intercom.com/docs/publish-to-the-app-store/review-publish-your-app (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "intercom.com",
+        "rank": 1299
+      }
+    },
+    {
+      "id": "miro-marketplace",
+      "name": "Miro Marketplace",
+      "category": "integration",
+      "submit": "https://miro.com/partnerships/ (Partner Interest Form)",
+      "listing": "miro.com/marketplace/<app> listing",
+      "dr": null,
+      "requires": [
+        "public-api"
+      ],
+      "cost": "free (no fee stated)",
+      "review": "partner acceptance first, then app review",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: submit the Partner Interest Form",
+        "human: after acceptance, upload assets via the submission form (1-6 visuals, <450-char description, privacy policy)"
+      ],
+      "notes": "Gated by partner acceptance; no self-serve path.",
+      "source": "https://developers.miro.com/docs/marketplace-listing-guidelines (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "miro.com",
+        "rank": 3253
+      }
+    },
+    {
+      "id": "canva-apps",
+      "name": "Canva Apps Marketplace",
+      "category": "integration",
+      "submit": "https://www.canva.com/developers/",
+      "listing": "Canva Apps Marketplace listing",
+      "dr": null,
+      "requires": [
+        "canva-app"
+      ],
+      "cost": "free (no fee stated)",
+      "review": "manual, tracked in a Jira Service Desk ticket",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "approve: upload the bundle with the Canva CLI",
+        "human: fill App listing details (text, media, links) and testing credentials",
+        "human: agree to terms and submit on Release > App status"
+      ],
+      "notes": "",
+      "source": "https://www.canva.dev/docs/apps/submitting-apps/ (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "canva.com",
+        "rank": 364
+      }
+    },
+    {
+      "id": "webflow-apps",
+      "name": "Webflow Apps Marketplace",
+      "category": "cms",
+      "submit": "https://developers.webflow.com/apps",
+      "listing": "webflow.com/apps/detail/<app> listing",
+      "dr": null,
+      "requires": [
+        "webflow-app"
+      ],
+      "cost": "free (no fee stated)",
+      "review": "manual, a few days",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "claude: build bundle.zip (<=5MB) and a separate ZIP of source maps + manifest + lockfile",
+        "human: enable 2FA, upload via Webflow CLI as Workspace admin",
+        "human: submit marketing assets and support info"
+      ],
+      "notes": "Designer Extensions must be reviewable from source.",
+      "source": "https://developers.webflow.com/apps/docs/publishing-your-app (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "webflow.com",
+        "rank": 3964
+      }
+    },
+    {
+      "id": "framer-marketplace",
+      "name": "Framer Marketplace (plugins)",
+      "category": "cms",
+      "submit": "https://www.framer.com/marketplace/dashboard",
+      "listing": "framer.com/marketplace/plugins/<plugin> listing",
+      "dr": null,
+      "requires": [
+        "framer-plugin"
+      ],
+      "cost": "free (no fee stated)",
+      "review": "approval; no stated criteria or timeline",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "claude: run npm run pack to produce plugin.zip; test light/dark mode",
+        "human: New Plugin in the Marketplace dashboard, upload plugin.zip, fill the form"
+      ],
+      "notes": "Loaded page says nothing about paid plugins.",
+      "source": "https://www.framer.com/developers/publishing (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "framer.com",
+        "rank": 6836
+      }
+    },
+    {
+      "id": "ifttt",
+      "name": "IFTTT service",
+      "category": "automation",
+      "submit": "https://platform.ifttt.com",
+      "listing": "ifttt.com/<service> service page",
+      "dr": null,
+      "requires": [
+        "public-api"
+      ],
+      "cost": "free",
+      "review": "manual, up to a week",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: create the service on platform.ifttt.com and wire auth + endpoints",
+        "claude: build at least 12 Applets and a white vector logo on transparent background",
+        "human: Publish tab submit; then fill the pre-launch marketing form with a launch date"
+      ],
+      "notes": "Personal support emails fail review.",
+      "source": "https://ifttt.com/docs (loaded 2026-11-08)",
+      "verified": "flow",
+      "traffic": {
+        "host": "ifttt.com",
+        "rank": 15996
+      }
     },
     {
       "id": "activepieces",
@@ -1137,7 +2041,39 @@
       ],
       "notes": "Merged pieces auto-publish to npm within minutes. Pieces are also exposed to MCP clients via Activepieces.",
       "source": "https://www.activepieces.com/docs/build-pieces/sharing-pieces/contribute (loaded 2026-11-08)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "activepieces.com",
+        "rank": 194317
+      }
+    },
+    {
+      "id": "salesforce-appexchange",
+      "name": "Salesforce AppExchange",
+      "category": "integration",
+      "submit": "https://partners.salesforce.com",
+      "listing": "appexchange.salesforce.com listing",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account"
+      ],
+      "cost": "free apps: no security review fee; paid: $999 initial review",
+      "review": "manual security review",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: join the Salesforce Partner Program and create a listing in Partner Console",
+        "human: pass the security review"
+      ],
+      "notes": "Fee page returned 403; figures from search snippets of the latest ISVforce guide. Possible annual listing fee unconfirmed.",
+      "source": "https://developer.salesforce.com/docs/atlas.en-us.packagingGuide.meta/packagingGuide/security_review_fees.htm (search only, not loaded 2026-11-08)",
+      "verified": "no",
+      "traffic": {
+        "host": "appexchange.salesforce.com",
+        "rank": 672382
+      }
     },
     {
       "id": "deps-dev",
@@ -1159,7 +2095,11 @@
       ],
       "notes": "Google-run; nothing to submit. Fix what the page shows (vulns, license) since it is what reviewers see.",
       "source": "https://docs.deps.dev/faq/ (loaded 2026-11-08)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "deps.dev",
+        "rank": 68254
+      }
     },
     {
       "id": "jsr",
@@ -1186,7 +2126,11 @@
       ],
       "notes": "Complements npm for TS libraries; provenance only via GitHub Actions.",
       "source": "https://jsr.io/docs/publishing-packages (loaded 2026-11-08)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "jsr.io",
+        "rank": 60560
+      }
     },
     {
       "id": "context7",
@@ -1215,7 +2159,11 @@
       ],
       "notes": "Feeds Context7 MCP used inside Cursor/Claude Code etc. Optional GitHub Action refreshes on push.",
       "source": "https://context7.com/docs/adding-libraries (loaded 2026-11-08)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "context7.com",
+        "rank": 29515
+      }
     },
     {
       "id": "public-apis",
@@ -1262,7 +2210,11 @@
       ],
       "notes": "The page says the project should be non-trivial and that new features and upgrades generally are not substantive enough.",
       "source": "https://news.ycombinator.com/showhn.html (loaded 2026-11-20)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "news.ycombinator.com",
+        "rank": 4460
+      }
     },
     {
       "id": "product-hunt-devtools",
@@ -1285,7 +2237,11 @@
         "human: ask for feedback, never for upvotes"
       ],
       "source": "https://help.producthunt.com/en/articles/479557-how-to-post-a-product, https://help.producthunt.com/en/articles/17834537-4-build-your-product-page, https://help.producthunt.com/en/articles/481909-how-can-i-get-access-to-post, https://www.producthunt.com/topics/developer-tools (loaded 2026-11-20)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "producthunt.com",
+        "rank": 6234
+      }
     },
     {
       "id": "huggingface",
@@ -1312,7 +2268,11 @@
       ],
       "notes": "Free CPU Basic Spaces go to sleep when idle.",
       "source": "https://huggingface.co/docs/hub/repositories-getting-started, https://huggingface.co/docs/hub/spaces-overview (loaded 2026-11-20)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "huggingface.co",
+        "rank": 1265
+      }
     },
     {
       "id": "pkg-go-dev",
@@ -1335,7 +2295,11 @@
         "approve: fetch it through the proxy once: GOPROXY=https://proxy.golang.org GO111MODULE=on go get <module>@vX.Y.Z (or the user clicks Request on pkg.go.dev/<module>)"
       ],
       "source": "https://pkg.go.dev/about (loaded 2026-11-20)",
-      "verified": "flow"
+      "verified": "flow",
+      "traffic": {
+        "host": "pkg.go.dev",
+        "rank": 383032
+      }
     },
     {
       "id": "github-topics",
@@ -1383,7 +2347,11 @@
       "notes": "Builds on the free rapidapi row.",
       "source": "https://docs.rapidapi.com/docs/payouts-and-finance (loaded 2026-11-08)",
       "verified": "yes",
-      "revenue": "25% fee since 2025-11-15; PayPal only; month N paid end of month N+1; minimum not stated"
+      "revenue": "25% fee since 2025-11-15; PayPal only; month N paid end of month N+1; minimum not stated",
+      "traffic": {
+        "host": "rapidapi.com",
+        "rank": 23345
+      }
     },
     {
       "id": "apify-store",
@@ -1408,7 +2376,124 @@
       "notes": "Store pages are public; agent payments supported for limited-permission Actors. Budget ~2h/week maintenance.",
       "source": "https://docs.apify.com/platform/actors/publishing/monetize (loaded 2026-11-08)",
       "verified": "flow",
-      "revenue": "Apify keeps 20%; your payout = revenue - 20% - platform usage; payout minimum/method not on loaded page"
+      "revenue": "Apify keeps 20%; your payout = revenue - 20% - platform usage; payout minimum/method not on loaded page",
+      "traffic": {
+        "host": "apify.com",
+        "rank": 17485
+      }
+    },
+    {
+      "id": "aws-marketplace",
+      "name": "AWS Marketplace",
+      "category": "monetize",
+      "submit": "https://aws.amazon.com/marketplace/management",
+      "listing": "aws.amazon.com/marketplace/pp/<id> product page",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "website"
+      ],
+      "cost": "listing fee per sale",
+      "review": "manual seller + product review",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: register as a seller (tax, bank) in the AWS Marketplace Management Portal",
+        "claude: implement SaaS registration/metering integration",
+        "human: submit the product listing"
+      ],
+      "notes": "Enterprise buyers can spend committed AWS budget.",
+      "source": "https://docs.aws.amazon.com/marketplace/latest/userguide/listing-fees.html (loaded 2026-11-08)",
+      "verified": "flow",
+      "revenue": "SaaS public offers 3%, AMI/container/ML 20%, private offers 3% (<$1M) down to 1.5%; CPPO +0.5%",
+      "traffic": {
+        "host": "aws.amazon.com",
+        "rank": 3755
+      }
+    },
+    {
+      "id": "microsoft-marketplace",
+      "name": "Microsoft Marketplace (AppSource / Azure)",
+      "category": "monetize",
+      "submit": "https://partner.microsoft.com (Partner Center)",
+      "listing": "appsource.microsoft.com / azuremarketplace listing; free 'Contact me' or 'Free trial' listings also give a page",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "website"
+      ],
+      "cost": "3% store service fee on transactable offers",
+      "review": "manual certification",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: create a Partner Center account with payout and tax profiles",
+        "claude: for transact SaaS, integrate Entra ID SSO and the SaaS Fulfillment APIs",
+        "human: create the offer (Contact me, Free trial or Get It Now) and submit"
+      ],
+      "notes": "A listing-only 'Contact me' offer is an exposure play with no billing integration.",
+      "source": "https://learn.microsoft.com/en-us/partner-center/marketplace-offers/marketplace-commercial-transaction-capabilities-and-considerations (loaded 2026-11-08)",
+      "verified": "flow",
+      "revenue": "3% store service fee unless otherwise specified, deducted at payout; SaaS must be multitenant with Entra ID",
+      "traffic": {
+        "host": "marketplace.microsoft.com",
+        "rank": 176619
+      }
+    },
+    {
+      "id": "gcp-marketplace",
+      "name": "Google Cloud Marketplace",
+      "category": "monetize",
+      "submit": "https://console.cloud.google.com/producer-portal",
+      "listing": "console.cloud.google.com/marketplace/product/<id>",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "website"
+      ],
+      "cost": "fee not stated on loaded page",
+      "review": "manual listing review",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "human: join Google Cloud Partner Network and accept the Marketplace Vendor Agreement",
+        "human: complete Project Info, then build the listing in Producer Portal"
+      ],
+      "notes": "Supports SaaS, VMs, Kubernetes apps, containers, datasets and AI agents.",
+      "source": "https://docs.cloud.google.com/marketplace/docs/partners/offer-products (loaded 2026-11-08)",
+      "verified": "flow",
+      "revenue": "fee/revenue share not stated on loaded page; check pricing guides in Partner Network Hub",
+      "traffic": {
+        "host": "console.cloud.google.com",
+        "rank": 11162
+      }
+    },
+    {
+      "id": "extensionpay",
+      "name": "ExtensionPay",
+      "category": "monetize",
+      "submit": "https://extensionpay.com",
+      "listing": "none (payments inside your extension)",
+      "dr": null,
+      "requires": [
+        "browser-ext"
+      ],
+      "cost": "5% per charge",
+      "review": "none",
+      "link": "none",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: create an ExtensionPay account and connect Stripe",
+        "claude: add the ExtPay library and paywall calls to the extension"
+      ],
+      "notes": "Replacement for the retired Chrome Web Store payments; works on Chrome, Firefox, Edge, Opera, Brave. Open source.",
+      "source": "https://extensionpay.com/ (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "5% at time of charge plus Stripe fees; funds land directly in your Stripe account"
     },
     {
       "id": "github-sponsors",
@@ -1461,7 +2546,59 @@
       "notes": "Merchant of record; fits dev tools, license keys, GitHub repo access. Paid plans lower the rate.",
       "source": "https://polar.sh/docs/merchant-of-record/fees (loaded 2026-11-08)",
       "verified": "flow",
-      "revenue": "Starter 5%+50c, Pro $20/mo 3.8%+40c, Growth $100/mo 3.6%+35c; +1.5% non-US cards; $15/dispute; Stripe payout fees $2/mo + 0.25%+$0.25"
+      "revenue": "Starter 5%+50c, Pro $20/mo 3.8%+40c, Growth $100/mo 3.6%+35c; +1.5% non-US cards; $15/dispute; Stripe payout fees $2/mo + 0.25%+$0.25",
+      "traffic": {
+        "host": "polar.sh",
+        "rank": 108094
+      }
+    },
+    {
+      "id": "lemon-squeezy",
+      "name": "Lemon Squeezy",
+      "category": "monetize",
+      "submit": "https://www.lemonsqueezy.com",
+      "listing": "store and product pages on <store>.lemonsqueezy.com",
+      "dr": null,
+      "requires": [
+        "website"
+      ],
+      "cost": "5% + 50c",
+      "review": "store activation review",
+      "link": "unchecked",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: create a store and pass activation (identity, payout)",
+        "claude: wire checkout links and license-key validation"
+      ],
+      "notes": "Merchant of record. Now part of Stripe ('Link, LLC f/k/a Lemon Squeezy'); banner mentions a 2026 Stripe Managed Payments update; check before choosing.",
+      "source": "https://www.lemonsqueezy.com/pricing (loaded 2026-11-08)",
+      "verified": "flow",
+      "revenue": "5% + 50c per transaction; extra fees on some non-US payments; no monthly fee"
+    },
+    {
+      "id": "paddle",
+      "name": "Paddle",
+      "category": "monetize",
+      "submit": "https://www.paddle.com",
+      "listing": "none by default (hosted checkout only)",
+      "dr": null,
+      "requires": [
+        "website"
+      ],
+      "cost": "5% + 50c",
+      "review": "account/domain verification (not described on loaded page)",
+      "link": "none",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: sign up and pass verification",
+        "claude: integrate Paddle.js checkout and webhooks"
+      ],
+      "notes": "Merchant of record for SaaS; custom pricing for sub-$10 products.",
+      "source": "https://www.paddle.com/pricing (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "5% + 50c per checkout transaction; no monthly fee"
     },
     {
       "id": "gumroad",
@@ -1485,7 +2622,11 @@
       "notes": "Handles sales tax worldwide since 2025-01-01. Good for paid skills, prompt packs, templates.",
       "source": "https://gumroad.com/pricing (loaded 2026-11-08)",
       "verified": "flow",
-      "revenue": "10% + $0.50 direct sales, 30% on Discover sales; payout minimum not on loaded page"
+      "revenue": "10% + $0.50 direct sales, 30% on Discover sales; payout minimum not on loaded page",
+      "traffic": {
+        "host": "gumroad.com",
+        "rank": 4261
+      }
     },
     {
       "id": "jetbrains-paid",
@@ -1509,7 +2650,120 @@
       "notes": "Builds on the free jetbrains row.",
       "source": "https://plugins.jetbrains.com/docs/marketplace/revenue-sharing-and-fees.html (loaded 2026-11-08)",
       "verified": "yes",
-      "revenue": "15% (can change with notice, capped at 25%); USD/EUR; paid up to 30 days after month end; minimum $200/EUR200 (forced payout Dec 31)"
+      "revenue": "15% (can change with notice, capped at 25%); USD/EUR; paid up to 30 days after month end; minimum $200/EUR200 (forced payout Dec 31)",
+      "traffic": {
+        "host": "plugins.jetbrains.com",
+        "rank": 144777
+      }
+    },
+    {
+      "id": "atlassian-paid",
+      "name": "Atlassian Marketplace paid apps",
+      "category": "monetize",
+      "submit": "https://developer.atlassian.com/console",
+      "listing": "same listing as atlassian-marketplace with pricing",
+      "dr": null,
+      "requires": [
+        "forge-app"
+      ],
+      "cost": "0% until $1M lifetime Forge revenue, then 17%",
+      "review": "manual, ~1 week",
+      "link": "unchecked",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "claude: set app.licensing.enabled: true in manifest.yml and check license.active",
+        "human: set pricing and payout details, submit"
+      ],
+      "notes": "Forge-only apps (no Connect modules, OAuth, Forge UI) qualify for the $1M incentive.",
+      "source": "https://developer.atlassian.com/market/faqs/pricing-payment-billing (loaded 2026-11-08)",
+      "verified": "flow",
+      "revenue": "Forge: 100% to you until $1M lifetime, then 83% (from 2026-10-01); Connect 75%; paid once $500 accrued, within 30 days after month end",
+      "traffic": {
+        "host": "marketplace.atlassian.com",
+        "rank": 490568
+      }
+    },
+    {
+      "id": "monday-paid",
+      "name": "monday.com marketplace paid apps",
+      "category": "monetize",
+      "submit": "https://developer.monday.com",
+      "listing": "same listing as monday-marketplace with plans",
+      "dr": null,
+      "requires": [
+        "public-api",
+        "test-account"
+      ],
+      "cost": "0% until $200K lifetime, then 15%",
+      "review": "manual",
+      "link": "unchecked",
+      "effort": "weeks",
+      "artifacts": null,
+      "steps": [
+        "claude: implement monday monetization (subscription checks)",
+        "human: submit plans and pricing; set up Payoneer"
+      ],
+      "notes": "Sales-order deals carry a 35% share (terms page, search only).",
+      "source": "https://developer.monday.com/apps/docs/subscriptions-payments-and-billing (loaded 2026-11-08)",
+      "verified": "flow",
+      "revenue": "85/15 after $200K lifetime revenue; Payoneer USD; paid up to 60 days after invoice approval",
+      "traffic": {
+        "host": "monday.com",
+        "rank": 4540
+      }
+    },
+    {
+      "id": "shopify-billing",
+      "name": "Shopify App Store billing",
+      "category": "monetize",
+      "submit": "https://partners.shopify.com",
+      "listing": "same App Store listing as shopify",
+      "dr": null,
+      "requires": [
+        "shopify-app"
+      ],
+      "cost": "0% on first $1M lifetime, then 15%",
+      "review": "manual app review",
+      "link": "App Store listing",
+      "effort": "days",
+      "artifacts": null,
+      "steps": [
+        "human: pay the $19 one-time Partner registration",
+        "claude: implement the Billing API for plans"
+      ],
+      "notes": "Builds on the shopify row.",
+      "source": "https://shopify.dev/docs/apps/launch/distribution/revenue-share (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "100% of first $1M lifetime (since 2025-01-01), then 15%; 2.9% processing fee on all billing; $19 registration",
+      "traffic": {
+        "host": "apps.shopify.com",
+        "rank": 100054
+      }
+    },
+    {
+      "id": "freemius",
+      "name": "Freemius",
+      "category": "monetize",
+      "submit": "https://freemius.com",
+      "listing": "none (checkout + licensing inside your product)",
+      "dr": null,
+      "requires": [
+        "wordpress-plugin|browser-ext|website"
+      ],
+      "cost": "3.8% + 50c (+2.3% for WordPress)",
+      "review": "seller onboarding",
+      "link": "none",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: create a Freemius account and payout method",
+        "claude: integrate the Freemius SDK for licensing/checkout"
+      ],
+      "notes": "Merchant of record for WordPress plugins/themes, SaaS, Chrome extensions, Electron apps.",
+      "source": "https://freemius.com/pricing/ (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "3.8% + 50c plus gateway fees (+2.3% WordPress), lower above $50K/mo; monthly payouts, $100 minimum"
     },
     {
       "id": "x402",
@@ -1536,6 +2790,30 @@
       "revenue": "protocol has 0 fees; facilitator and network fees not stated on loaded pages"
     },
     {
+      "id": "cloudflare-pay-per-crawl",
+      "name": "Cloudflare Pay per crawl",
+      "category": "monetize",
+      "submit": "https://developers.cloudflare.com/ai-crawl-control/features/pay-per-crawl/what-is-pay-per-crawl/",
+      "listing": "none (charges AI crawlers on your site)",
+      "dr": null,
+      "requires": [
+        "website",
+        "own-domain"
+      ],
+      "cost": "not stated",
+      "review": "closed beta signup",
+      "link": "none",
+      "effort": "hours",
+      "artifacts": null,
+      "steps": [
+        "human: request closed-beta access, then set a per-zone price in AI Crawl Control"
+      ],
+      "notes": "Only useful for content-heavy sites (docs, blogs) on Cloudflare. Cloudflare is merchant of record.",
+      "source": "https://developers.cloudflare.com/ai-crawl-control/features/pay-per-crawl/what-is-pay-per-crawl/ (loaded 2026-11-08)",
+      "verified": "yes",
+      "revenue": "fees not stated; closed beta"
+    },
+    {
       "id": "mcpize",
       "name": "MCPize (paid MCP marketplace)",
       "category": "monetize",
@@ -1557,7 +2835,11 @@
       "notes": "Vendor homepage only; payout terms not shown. Small, young marketplace; treat as optional.",
       "source": "https://mcpize.com/ (loaded 2026-11-08)",
       "verified": "no",
-      "revenue": "publishers keep 80% of subscriptions; payout method/minimum not shown"
+      "revenue": "publishers keep 80% of subscriptions; payout method/minimum not shown",
+      "traffic": {
+        "host": "mcpize.com",
+        "rank": null
+      }
     },
     {
       "id": "apilayer",
@@ -1581,7 +2863,11 @@
       "notes": "Commission conflicts across sources (handling fee vs 15%); learn it during review.",
       "source": "https://apilayer.com/docs/article/provider-faq (search only, not loaded 2026-11-08; 404 on 2026-11-12)",
       "verified": "no",
-      "revenue": "split not published; monthly payouts"
+      "revenue": "split not published; monthly payouts",
+      "traffic": {
+        "host": "marketplace.apilayer.com",
+        "rank": null
+      }
     }
   ]
 }

@@ -17,19 +17,21 @@ class ScanTest(unittest.TestCase):
 
     def test_detects_assets_and_routes(self):
         with tempfile.TemporaryDirectory() as d:
+            os.makedirs(os.path.join(d, "ext"))
             os.makedirs(os.path.join(d, "skills", "x"))
             os.makedirs(os.path.join(d, "node_modules", "junk"))
+            open(os.path.join(d, "ext", "manifest.json"), "w").write('{"manifest_version": 3}')
             open(os.path.join(d, "skills", "x", "SKILL.md"), "w").write("---\nname: x\n---\n")
             open(os.path.join(d, "node_modules", "junk", "openapi.json"), "w").write("{}")  # skipped dir
             open(os.path.join(d, "package.json"), "w").write(json.dumps(
                 {"name": "x", "bin": {"x": "cli.js"}, "dependencies": {"@modelcontextprotocol/sdk": "1"}}))
             found = scan.detect(d)
-            self.assertTrue({"skill-md", "npm-cli", "mcp-server"} <= set(found))
+            self.assertTrue({"browser-ext", "skill-md", "npm-cli", "mcp-server"} <= set(found))
             self.assertNotIn("openapi", found)
 
             eligible, unlocks, _ = scan.route(set(found), scan.load_catalog())
             ids = {p["id"] for p, _ in eligible}
-            self.assertIn("clawhub", ids)
+            self.assertIn("chrome-web-store", ids)
             self.assertIn("mcp-registry", ids)
             self.assertNotIn("smithery", ids)  # needs a live remote URL, which only --have declares
             self.assertIn("mcp-remote", dict(unlocks))
@@ -38,9 +40,10 @@ class ScanTest(unittest.TestCase):
         files = {
             ".actor/actor.json": "{}",
             ".cursor-plugin/plugin.json": "{}",
-            "ext/manifest.json": '{"manifest_version": 3, "minAppVersion": "1"}',  # browser manifests are not Obsidian plugins
+            "teams/manifest.json": '{"$schema": "https://developer.microsoft.com/json-schemas/teams/v1.19/MicrosoftTeams.schema.json"}',
+            "forge/manifest.yml": "modules:\n  jira:issuePanel: []\napp:\n  id: ari:x\n",
+            "addon/appsscript.json": '{"addOns": {}}',
             "jsr.json": "{}",
-            "Package.swift": "// swift-tools-version:5.9",
             "go.mod": "module example.com/x",
         }
         with tempfile.TemporaryDirectory() as d:
@@ -48,8 +51,8 @@ class ScanTest(unittest.TestCase):
                 os.makedirs(os.path.dirname(os.path.join(d, rel)), exist_ok=True)
                 open(os.path.join(d, rel), "w").write(text)
             found = set(scan.detect(d))
-        self.assertTrue({"apify-actor", "cursor-plugin", "jsr-package", "swift-package", "go-module"} <= found)
-        self.assertNotIn("obsidian-plugin", found)
+        self.assertTrue({"apify-actor", "cursor-plugin", "teams-app", "forge-app", "workspace-addon", "jsr-package", "go-module"} <= found)
+        self.assertNotIn("browser-ext", found)
 
     def test_either_or_requirement(self):
         cat = scan.load_catalog()
@@ -70,7 +73,7 @@ class ScanTest(unittest.TestCase):
 
     def test_recipes_are_named_for_known_ids(self):
         with tempfile.TemporaryDirectory() as d:
-            open(os.path.join(d, "vscode-ext.md"), "w").write("x")
+            open(os.path.join(d, "browser-ext.md"), "w").write("x")
             open(os.path.join(d, "n8n.md"), "w").write("x")
             open(os.path.join(d, "nope.md"), "w").write("x")
             old, scan.RECIPES = scan.RECIPES, d
@@ -151,6 +154,15 @@ class ScanTest(unittest.TestCase):
                 bad.append(f"{where}: an install command must be an approve: step")
         self.assertEqual(bad, [])
 
+    def test_ranks_by_listing_host_traffic(self):
+        row = lambda i, rank, effort="minutes": {"id": i, "requires": [], "effort": effort,
+                                                 **({"traffic": {"host": i, "rank": rank}} if rank != "none" else {})}
+        cat = [row("quiet", None), row("busy", 500), row("mid", 50_000), row("nohost", "none"), row("busy-slow", 500, "weeks")]
+        self.assertEqual([p["id"] for p, _ in scan.route(set(), cat)[0]], ["busy", "busy-slow", "mid", "quiet", "nohost"])
+        bad = {**row("x", 0), "name": "x", "category": "c", "submit": "s", "cost": "c", "review": "r", "link": "l",
+               "source": "s", "verified": "no", "steps": ["human: x"]}
+        self.assertIn("x: traffic must be {host, rank} with a positive integer rank or null", scan.check([bad]))
+
     def test_skips_agent_config_and_honours_declared_public_repo(self):
         with tempfile.TemporaryDirectory() as d:
             for rel in (".claude/worktrees/a/skills/x/SKILL.md", ".agents/skills/x/SKILL.md"):
@@ -180,17 +192,17 @@ class ScanTest(unittest.TestCase):
         self.assertEqual(errors({**row, "verified": "flow"}), [])
         self.assertEqual(errors({**row, "link": "rel=ugc nofollow (observed)"}), [])
 
-    def test_unknown_dr_ranks_after_known_and_prints_unknown(self):
-        row = lambda i, dr, effort: {"id": i, "name": i, "category": "mcp", "submit": "u", "requires": [], "cost": "free",
-                                     "review": "none", "link": "l", "effort": effort, "source": "s", "verified": "no",
-                                     "dr": dr, "steps": ["human: x"]}
-        cat = [row("unknown-fast", None, "minutes"), row("low", 20, "hours"), row("unknown-slow", None, "days"), row("high", 90, "hours")]
-        eligible, _, _ = scan.route(set(), cat)
-        self.assertEqual([p["id"] for p, _ in eligible], ["high", "low", "unknown-fast", "unknown-slow"])
+    def test_report_prints_traffic_and_says_when_unmeasured(self):
+        row = lambda i, t: {"id": i, "name": i, "category": "mcp", "submit": "u", "requires": [], "cost": "free",
+                            "review": "none", "link": "l", "effort": "minutes", "source": "s", "verified": "no",
+                            "steps": ["human: x"], **({"traffic": t} if t else {})}
+        cat = [row("busy", {"host": "busy.example", "rank": 1234}), row("quiet", {"host": "quiet.example", "rank": None}),
+               row("inapp", None)]
         with tempfile.TemporaryDirectory() as d:
             md, _ = scan.report(d, set(), cat)
-        self.assertIn("| `unknown-fast` unknown-fast | unknown |", md)
-
+        self.assertIn("| `busy` busy | busy.example #1,234 |", md)
+        self.assertIn("| `quiet` quiet | quiet.example (not in top 1M) |", md)
+        self.assertIn("| `inapp` inapp | no host to measure |", md)
     def test_linkcheck_separates_dead_from_blocked(self):
         import http.server
         import importlib.util
