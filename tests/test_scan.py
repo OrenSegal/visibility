@@ -17,21 +17,19 @@ class ScanTest(unittest.TestCase):
 
     def test_detects_assets_and_routes(self):
         with tempfile.TemporaryDirectory() as d:
-            os.makedirs(os.path.join(d, "ext"))
             os.makedirs(os.path.join(d, "skills", "x"))
             os.makedirs(os.path.join(d, "node_modules", "junk"))
-            open(os.path.join(d, "ext", "manifest.json"), "w").write('{"manifest_version": 3}')
             open(os.path.join(d, "skills", "x", "SKILL.md"), "w").write("---\nname: x\n---\n")
             open(os.path.join(d, "node_modules", "junk", "openapi.json"), "w").write("{}")  # skipped dir
             open(os.path.join(d, "package.json"), "w").write(json.dumps(
                 {"name": "x", "bin": {"x": "cli.js"}, "dependencies": {"@modelcontextprotocol/sdk": "1"}}))
             found = scan.detect(d)
-            self.assertTrue({"browser-ext", "skill-md", "npm-cli", "mcp-server"} <= set(found))
+            self.assertTrue({"skill-md", "npm-cli", "mcp-server"} <= set(found))
             self.assertNotIn("openapi", found)
 
             eligible, unlocks, _ = scan.route(set(found), scan.load_catalog())
             ids = {p["id"] for p, _ in eligible}
-            self.assertIn("chrome-web-store", ids)
+            self.assertIn("clawhub", ids)
             self.assertIn("mcp-registry", ids)
             self.assertNotIn("smithery", ids)  # needs a live remote URL, which only --have declares
             self.assertIn("mcp-remote", dict(unlocks))
@@ -40,18 +38,18 @@ class ScanTest(unittest.TestCase):
         files = {
             ".actor/actor.json": "{}",
             ".cursor-plugin/plugin.json": "{}",
-            "teams/manifest.json": '{"$schema": "https://developer.microsoft.com/json-schemas/teams/v1.19/MicrosoftTeams.schema.json"}',
-            "forge/manifest.yml": "modules:\n  jira:issuePanel: []\napp:\n  id: ari:x\n",
-            "addon/appsscript.json": '{"addOns": {}}',
+            "ext/manifest.json": '{"manifest_version": 3, "minAppVersion": "1"}',  # browser manifests are not Obsidian plugins
             "jsr.json": "{}",
+            "Package.swift": "// swift-tools-version:5.9",
+            "go.mod": "module example.com/x",
         }
         with tempfile.TemporaryDirectory() as d:
             for rel, text in files.items():
                 os.makedirs(os.path.dirname(os.path.join(d, rel)), exist_ok=True)
                 open(os.path.join(d, rel), "w").write(text)
             found = set(scan.detect(d))
-        self.assertTrue({"apify-actor", "cursor-plugin", "teams-app", "forge-app", "workspace-addon", "jsr-package"} <= found)
-        self.assertNotIn("browser-ext", found)
+        self.assertTrue({"apify-actor", "cursor-plugin", "jsr-package", "swift-package", "go-module"} <= found)
+        self.assertNotIn("obsidian-plugin", found)
 
     def test_either_or_requirement(self):
         cat = scan.load_catalog()
@@ -72,7 +70,7 @@ class ScanTest(unittest.TestCase):
 
     def test_recipes_are_named_for_known_ids(self):
         with tempfile.TemporaryDirectory() as d:
-            open(os.path.join(d, "browser-ext.md"), "w").write("x")
+            open(os.path.join(d, "vscode-ext.md"), "w").write("x")
             open(os.path.join(d, "n8n.md"), "w").write("x")
             open(os.path.join(d, "nope.md"), "w").write("x")
             old, scan.RECIPES = scan.RECIPES, d
@@ -152,6 +150,21 @@ class ScanTest(unittest.TestCase):
             if re.match(r"\s*claude: ", text) and cmd.search(text):
                 bad.append(f"{where}: an install command must be an approve: step")
         self.assertEqual(bad, [])
+
+    def test_skips_agent_config_and_honours_declared_public_repo(self):
+        with tempfile.TemporaryDirectory() as d:
+            for rel in (".claude/worktrees/a/skills/x/SKILL.md", ".agents/skills/x/SKILL.md"):
+                os.makedirs(os.path.dirname(os.path.join(d, rel)))
+                open(os.path.join(d, rel), "w").write("---\nname: x\n---\n")
+            subprocess.run(["git", "init", "-q", d], check=True)
+            subprocess.run(["git", "-C", d, "remote", "add", "origin", "https://github.com/o/r.git"], check=True)
+            old, scan.is_public = scan.is_public, lambda origin: False  # as when gh and the API cannot tell
+            try:
+                self.assertNotIn("skill-md", scan.detect(d))
+                self.assertIn("not counted as public", scan.report(d, set(), [])[0])
+                self.assertNotIn("not counted as public", scan.report(d, {"github-public"}, [])[0])
+            finally:
+                scan.is_public = old
 
     def test_rejects_unknown_declared_asset(self):
         r = subprocess.run([sys.executable, SCAN, ".", "--have", "nope"], capture_output=True, text=True)

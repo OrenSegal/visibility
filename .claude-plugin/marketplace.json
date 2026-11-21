@@ -1,13 +1,13 @@
 {
   "name": "visibility",
   "owner": { "name": "Oren Segal" },
-  "metadata": { "description": "Get a product listed on agent, integration and extension marketplaces." },
+  "metadata": { "description": "Ship it where builders look: get your MCP server, agent plugin, skill, SDK or API listed in the registries, marketplaces and package indexes developers and agents actually search." },
   "plugins": [
     {
       "name": "visibility",
       "source": "./",
-      "description": "Asset-aware visibility plan plus gated, one-platform-at-a-time registration on MCP, skill, automation, extension and API marketplaces.",
-      "version": "0.3.0",
+      "description": "Ship it where builders look: get your MCP server, agent plugin, skill, SDK or API listed in the registries, marketplaces and package indexes developers and agents actually search.",
+      "version": "0.4.0",
       "license": "MIT"
     }
   ]

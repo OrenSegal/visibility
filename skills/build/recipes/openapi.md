@@ -1,7 +1,7 @@
 ---
 id: openapi
 kind: asset
-unlocks: [make, rapidapi, postman, apis-guru]
+unlocks: [rapidapi, postman, apis-guru]
 source: https://fastapi.tiangolo.com/how-to/extending-openapi/, https://hono.dev/examples/zod-openapi, https://raw.githubusercontent.com/honojs/middleware/main/packages/zod-openapi/README.md, https://raw.githubusercontent.com/rswag/rswag/master/README.md, https://redocly.com/docs/cli/commands/lint (loaded 2026-11-08)
 ---
 ## Smallest version

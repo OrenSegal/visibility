@@ -1,7 +1,7 @@
 ---
 id: mcp-remote
 kind: asset
-unlocks: [smithery, glama, claude-connectors, vercel-connectors, zapier, manus, chatgpt-apps, hermes]
+unlocks: [smithery, glama, claude-connectors, vercel-connectors, manus, chatgpt-apps, hermes]
 source: https://developers.cloudflare.com/agents/guides/remote-mcp-server/, https://vercel.com/docs/mcp/deploy-mcp-servers-to-vercel, https://smithery.ai/future, https://glama.ai/mcp/connectors, https://glama.ai/mcp/connectors/fyi.jotter/jot (loaded 2026-11-08)
 ---
 ## Smallest version
