@@ -20,7 +20,7 @@ python3 $F done $C <repo> <platform> --status queued --note "<what you did>"
 
 Repeat `next` and `done` until `next` prints `null`. Then run `python3 $F status $C` and give the operator its output, plus `python3 $F next $C --kind approve --json` (needs a yes) and `--kind human` (needs them).
 
-To split work across agents, give each its own repos with `next --repo owner/name`. Two agents on one repo will collide on the branch.
+To split work across agents, give each its own repos with `next --repo owner/name`. Two agents on one repo will collide on the branch. Commands that change the ledger (`plan`, `report`, `done`) take a lock on `<control>/.lock` and write by rename, so agents sharing a control folder cannot overwrite each other's rows or leave a half-written file (Linux and macOS; Windows has no lock).
 
 ## A `prepare` task
 
@@ -44,10 +44,22 @@ Publish, tag, release, open PRs or issues, change repo settings or topics, touch
 
 `done --status live` requires `--url` (the listing page); only the operator or `report` should set `live` or `submitted`.
 
+## Baseline: keep every repo safe to depend on
+
+```bash
+python3 $F baseline $C                 # table: one row per repo, one column per check, then what to fix
+python3 $F baseline $C --repo owner/name --json
+```
+
+Ten mechanical checks: `license`, `readme`, `security-policy`, `tests-exist`, `ci-on-pr`, `workflow-permissions` (a top-level `permissions:` in every workflow), `workflow-timeouts` (`timeout-minutes` on every job), `actions-pinned` (every third-party action at a full commit sha, version in a trailing comment), `dependabot` (a `github-actions` entry, so the pins get updated) and `versions-agree` (root manifests carry one version). Fix a failing check on a branch the same way as a `prepare` task, then re-run `baseline`. Set `"community_defaults": true` at the top of `portfolio.json` when an owner-level `.github` repo supplies SECURITY.md.
+
+To pin an action, resolve the tag's commit with `git ls-remote https://github.com/<owner>/<action> 'refs/tags/<tag>' 'refs/tags/<tag>^{}'` and take the `^{}` line when there is one.
+
 ## Weekly cadence
 
 ```bash
 python3 $F plan $C                     # new repos, new assets, rows whose asset vanished
+python3 $F baseline $C                 # anything that fell below the baseline since last week
 # worker loop above
 GITHUB_TOKEN=<token with push access> python3 $F report $C   # re-check live listings, metrics, reports/<date>.md
 ```

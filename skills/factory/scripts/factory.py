@@ -11,6 +11,8 @@ Usage:
                                                     the next open task, as one JSON object an agent can act on
   factory.py done <control-dir> <repo> <platform> --status S [--url U] [--note N]
                                                     record what happened to one ledger row
+  factory.py baseline <control-dir> [--repo owner/name] [--json]
+                                                    mechanical robustness checks per repo (what a repo must have to be safe to depend on)
 
 The control folder (a private repo such as distribution-hq) holds portfolio.json, LEDGER.csv, QUEUE.md,
 METRICS.csv and reports/. Nothing here publishes, signs in or submits: QUEUE.md lists the claude: work,
@@ -19,7 +21,9 @@ platform, so one sign-in covers every repo). Platform facts stay in ../../plan/c
 """
 import argparse
 import csv
+import contextlib
 import datetime
+import io
 import json
 import os
 import re
@@ -73,11 +77,43 @@ def read_csv(path, cols):
         return [{c: row.get(c, "") for c in cols} for row in csv.DictReader(f)]
 
 
+def write_atomic(path, text):
+    """Write text so a crash leaves the old file or the new one, never half of either."""
+    tmp = f"{path}.tmp{os.getpid()}"
+    try:
+        with open(tmp, "w", encoding="utf-8", newline="") as f:
+            f.write(text)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, path)
+    finally:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+
+
+@contextlib.contextmanager
+def ledger_lock(control):
+    """Serialize commands that read, change and rewrite the ledger, so agents sharing a control folder cannot
+    overwrite each other's rows. Uses flock where the platform has it (Linux, macOS); elsewhere it does nothing."""
+    try:
+        import fcntl
+    except ImportError:
+        yield
+        return
+    with open(os.path.join(control, ".lock"), "w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+
 def write_csv(path, cols, rows):
-    with open(path, "w", encoding="utf-8", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=cols, lineterminator="\n")
-        w.writeheader()
-        w.writerows(rows)
+    buf = io.StringIO()
+    w = csv.DictWriter(buf, fieldnames=cols, lineterminator="\n")
+    w.writeheader()
+    w.writerows(rows)  # a bad row raises here, before the real file is touched
+    write_atomic(path, buf.getvalue())
 
 
 # ---------- plan: scan, merge, queue ----------
@@ -434,6 +470,84 @@ def done(ledger, repo, platform, new_status, url="", note="", today=""):
     return row
 
 
+# ---------- baseline: what every repo needs to be safe to depend on ----------
+
+CHECKS = ("license", "readme", "security-policy", "tests-exist", "ci-on-pr", "workflow-permissions",
+          "workflow-timeouts", "actions-pinned", "dependabot", "versions-agree")
+SHA_REF = re.compile(r"^[0-9a-f]{40}$")
+
+
+def _workflows(path):
+    d = os.path.join(path, ".github", "workflows")
+    out = []
+    for f in sorted(os.listdir(d)) if os.path.isdir(d) else []:
+        if f.endswith((".yml", ".yaml")):
+            out.append((f, scan.read(os.path.join(d, f))))
+    return out
+
+
+def _has_any(path, rels):
+    return any(os.path.exists(os.path.join(path, r)) for r in rels)
+
+
+def _versions(path):
+    """{file: version} for the root manifests that carry one; a dynamic pyproject version is not read."""
+    found = {}
+    for rel in ("package.json", ".claude-plugin/plugin.json", "gemini-extension.json"):
+        try:
+            v = json.loads(scan.read(os.path.join(path, rel)) or "{}").get("version")
+        except ValueError:
+            v = None
+        if isinstance(v, str):
+            found[rel] = v
+    m = re.search(r"^\[project\][^\[]*?^version\s*=\s*[\"']([^\"']+)", scan.read(os.path.join(path, "pyproject.toml")), re.M | re.S)
+    if m:
+        found["pyproject.toml"] = m.group(1)
+    return found
+
+
+def baseline(path, community_defaults=False):
+    """{check: (ok, detail)}. Every check is mechanical; `detail` names what to fix. A repo with community
+    defaults (an owner-level .github repo) needs no SECURITY.md of its own."""
+    wf = _workflows(path)
+    res = {}
+    res["license"] = (any(re.fullmatch(r"(LICEN[CS]E|COPYING)(\.\w+)?", f) for f in os.listdir(path)), "add a LICENSE file")
+    res["readme"] = (any(f.lower() in ("readme.md", "readme.rst", "readme") for f in os.listdir(path)), "add a README.md")
+    res["security-policy"] = (community_defaults or _has_any(path, ("SECURITY.md", ".github/SECURITY.md", "docs/SECURITY.md")),
+                              "add SECURITY.md (how to report a vulnerability), or an owner-level .github repo with one")
+    has_tests = False
+    for dirpath, dirnames, filenames in os.walk(path):
+        dirnames[:] = [d for d in dirnames if d not in (".git", "node_modules", ".venv", "venv", "__pycache__")]
+        depth = os.path.relpath(dirpath, path).count(os.sep)
+        if depth > 3:
+            dirnames[:] = []
+        if os.path.basename(dirpath) in ("tests", "test", "Tests", "__tests__", "spec") or \
+                any(re.match(r"(test_.*\.py|.*_test\.(py|go|rs)|.*\.test\.(js|ts|mjs)|.*Tests?\.swift)$", f) for f in filenames):
+            has_tests = True
+            break
+    res["tests-exist"] = (has_tests, "add tests")
+    res["ci-on-pr"] = (any(re.search(r"^\s*pull_request", t, re.M) or "pull_request" in t.split("jobs:")[0] for _, t in wf),
+                       "add a workflow that runs the tests on pull_request")
+    no_perm = [f for f, t in wf if not re.search(r"^permissions:", t, re.M)]
+    res["workflow-permissions"] = (not no_perm, "add a top-level `permissions: contents: read` to " + ", ".join(no_perm))
+    slow = [f for f, t in wf if len(re.findall(r"^\s+runs-on:", t, re.M)) > len(re.findall(r"^\s+timeout-minutes:", t, re.M))]
+    res["workflow-timeouts"] = (not slow, "add timeout-minutes to every job in " + ", ".join(slow))
+    loose = set()
+    for _, t in wf:
+        for ref in re.findall(r"^\s*(?:-\s*)?uses:\s*([^\s#]+)", t, re.M):
+            if ref.startswith(("./", "docker://")) or "@" not in ref:
+                continue
+            if not SHA_REF.match(ref.rsplit("@", 1)[1]):
+                loose.add(ref)
+    res["actions-pinned"] = (not loose, "pin to a full commit sha (keep the version in a trailing comment): " + ", ".join(sorted(loose)))
+    dep = os.path.join(path, ".github", "dependabot.yml")
+    res["dependabot"] = (os.path.exists(dep) and "github-actions" in scan.read(dep),
+                         "add .github/dependabot.yml with a github-actions entry (so pinned shas get updated)")
+    vs = _versions(path)
+    res["versions-agree"] = (len(set(vs.values())) <= 1, "manifest versions differ: " + ", ".join(f"{k} {v}" for k, v in vs.items()))
+    return res
+
+
 # ---------- init ----------
 
 def init(control, paths):
@@ -454,15 +568,16 @@ def init(control, paths):
     target = os.path.join(control, "portfolio.json")
     if os.path.exists(target):
         sys.exit(f"{target} exists; edit it instead")
-    with open(target, "w", encoding="utf-8") as f:
-        json.dump({"repos": repos}, f, indent=2)
-        f.write("\n")
+    write_atomic(target, json.dumps({"repos": repos}, indent=2) + "\n")
+    ignore = os.path.join(control, ".gitignore")
+    if not os.path.exists(ignore):
+        write_atomic(ignore, ".lock\n")  # ledger_lock's file
     print(f"wrote {target} with {len(repos)} repos; set priority, character, have and skip for each")
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[1])
-    ap.add_argument("command", choices=["init", "plan", "report", "status", "next", "done"])
+    ap.add_argument("command", choices=["init", "plan", "report", "status", "next", "done", "baseline"])
     ap.add_argument("control")
     ap.add_argument("paths", nargs="*")
     ap.add_argument("--date", default=datetime.date.today().isoformat())
@@ -476,6 +591,15 @@ def main():
     a = ap.parse_args()
     if a.command == "init":
         return init(a.control, a.paths)
+    if a.command in ("plan", "report", "done"):
+        if not os.path.isdir(a.control):
+            sys.exit(f"{a.command}: no control folder at {a.control}; run init first")
+        with ledger_lock(a.control):
+            return run(a, ap)
+    return run(a, ap)
+
+
+def run(a, ap):
     pf, catalog = load_portfolio(a.control), scan.load_catalog()
     ledger_path = os.path.join(a.control, "LEDGER.csv")
     ledger = read_csv(ledger_path, LEDGER_COLS)
@@ -488,6 +612,23 @@ def main():
                 print(f"{repo}: " + ", ".join(f"{k} {v}" for k, v in sorted(c.items())))
             for w in st["waiting_on_user"]:
                 print(f"waiting on you: {w['repo']} x {w['platform']}: {w['why']}")
+        return 0
+    if a.command == "baseline":
+        results = {}
+        for r in pf["repos"]:
+            if r["enabled"] and (not a.repo or r["repo"] == a.repo) and os.path.isdir(r["path"]):
+                results[r["repo"]] = baseline(r["path"], pf.get("community_defaults", False))
+        if a.json:
+            print(json.dumps({repo: {c: {"ok": ok, "fix": None if ok else why} for c, (ok, why) in res.items()}
+                              for repo, res in results.items()}, indent=2))
+        else:
+            print("| Repo | " + " | ".join(CHECKS) + " |\n|---|" + "---|" * len(CHECKS))
+            for repo, res in results.items():
+                print(f"| {repo} | " + " | ".join("ok" if res[c][0] else "FIX" for c in CHECKS) + " |")
+            for repo, res in results.items():
+                for c in CHECKS:
+                    if not res[c][0]:
+                        print(f"{repo}: {c}: {res[c][1]}")
         return 0
     if a.command == "next":
         found = tasks(pf, catalog, ledger, a.kind, a.repo)
@@ -507,8 +648,7 @@ def main():
     if a.command == "plan":
         ledger, added, gone = plan(pf, catalog, ledger, a.date, get=None if a.offline else http_get)
         write_csv(ledger_path, LEDGER_COLS, ledger)
-        with open(os.path.join(a.control, "QUEUE.md"), "w", encoding="utf-8") as f:
-            f.write(queue(pf, catalog, ledger, added, gone, a.date))
+        write_atomic(os.path.join(a.control, "QUEUE.md"), queue(pf, catalog, ledger, added, gone, a.date))
         print(f"{len(added)} new, {len(gone)} no longer eligible; wrote QUEUE.md and LEDGER.csv")
     else:
         mpath = os.path.join(a.control, "METRICS.csv")
@@ -517,8 +657,7 @@ def main():
         kept = [m for m in read_csv(mpath, METRIC_COLS) if m["date"] != a.date]  # a re-run replaces that day's rows
         write_csv(mpath, METRIC_COLS, kept + rows)
         os.makedirs(os.path.join(a.control, "reports"), exist_ok=True)
-        with open(os.path.join(a.control, "reports", f"{a.date}.md"), "w", encoding="utf-8") as f:
-            f.write(md)
+        write_atomic(os.path.join(a.control, "reports", f"{a.date}.md"), md)
         print(md)
     return 0
 

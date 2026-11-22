@@ -39,9 +39,21 @@ def classify(code):
     return "ok" if 200 <= code < 300 else "dead" if code in (404, 410) else "blocked" if code else "unreachable"
 
 
+def submit_urls(platforms):
+    """(id, url) for each row whose `submit` starts with http. A templated URL (https://github.com/<owner>/<repo>)
+    is a placeholder for the user's own page, not a page, so it is not checked."""
+    rows = []
+    for p in platforms:
+        if p["submit"].startswith("http"):
+            url = p["submit"].split()[0]
+            if "<" not in url:
+                rows.append((p["id"], url))
+    return rows
+
+
 def main():
     with open(sys.argv[1] if len(sys.argv) > 1 else CATALOG, encoding="utf-8") as f:
-        rows = [(p["id"], p["submit"].split()[0]) for p in json.load(f)["platforms"] if p["submit"].startswith("http")]
+        rows = submit_urls(json.load(f)["platforms"])
     results = [(pid, url, status(url)) for pid, url in rows]
     for kind in ("dead", "unreachable", "blocked"):
         for pid, url, code in results:

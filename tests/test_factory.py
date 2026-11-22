@@ -2,6 +2,7 @@
 import json
 import os
 import shutil
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -204,6 +205,83 @@ class FactoryTest(unittest.TestCase):
         self.assertEqual(sorted(st["repos"]), ["me/a", "me/b"])
         self.assertEqual(st["repos"]["me/a"], {"planned": 1, "queued": 1, "waiting-on-user": 1})
         self.assertEqual(st["waiting_on_user"], [{"repo": "me/a", "platform": "reg", "why": "pick a package name"}])
+
+    def repo_tree(self, files):
+        d = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, d)
+        for rel, text in files.items():
+            os.makedirs(os.path.dirname(os.path.join(d, rel)) or d, exist_ok=True)
+            with open(os.path.join(d, rel), "w") as f:
+                f.write(text)
+        return d
+
+    GOOD_CI = ("name: ci\non:\n  pull_request:\npermissions:\n  contents: read\njobs:\n  t:\n    runs-on: ubuntu-latest\n"
+               "    timeout-minutes: 10\n    steps:\n      - uses: actions/checkout@" + "a" * 40 + " # v7\n      - uses: ./local\n")
+
+    def test_baseline_passes_a_hardened_repo(self):
+        d = self.repo_tree({"LICENSE": "MIT", "README.md": "x", "SECURITY.md": "x", "tests/test_a.py": "",
+                            ".github/workflows/ci.yml": self.GOOD_CI,
+                            ".github/dependabot.yml": "updates:\n  - package-ecosystem: github-actions\n",
+                            "package.json": '{"version": "1.2.0"}', "gemini-extension.json": '{"version": "1.2.0"}'})
+        res = factory.baseline(d)
+        self.assertEqual([c for c, (ok, _) in res.items() if not ok], [])
+        self.assertEqual(set(res), set(factory.CHECKS))
+
+    def test_baseline_names_each_gap(self):
+        ci = ("on: push\njobs:\n  a:\n    runs-on: x\n    steps:\n      - uses: actions/checkout@v4\n"
+              "      - uses: docker://alpine:3\n  b:\n    runs-on: x\n    timeout-minutes: 5\n")
+        d = self.repo_tree({"README.md": "x", ".github/workflows/ci.yml": ci,
+                            "package.json": '{"version": "1.0.0"}', ".claude-plugin/plugin.json": '{"version": "1.1.0"}'})
+        res = factory.baseline(d)
+        failing = {c for c, (ok, _) in res.items() if not ok}
+        self.assertEqual(failing, {"license", "security-policy", "tests-exist", "ci-on-pr", "workflow-permissions",
+                                   "workflow-timeouts", "actions-pinned", "dependabot", "versions-agree"})
+        self.assertIn("actions/checkout@v4", res["actions-pinned"][1])
+        self.assertNotIn("docker://", res["actions-pinned"][1])
+        self.assertIn("ci.yml", res["workflow-timeouts"][1])  # job a has no timeout, job b does
+        self.assertIn("package.json 1.0.0", res["versions-agree"][1])
+
+    def test_baseline_community_defaults_stand_in_for_a_security_policy(self):
+        d = self.repo_tree({"README.md": "x"})
+        self.assertFalse(factory.baseline(d)["security-policy"][0])
+        self.assertTrue(factory.baseline(d, community_defaults=True)["security-policy"][0])
+
+    def test_baseline_with_no_workflows_fails_the_ci_check_not_the_others_it_cannot_judge(self):
+        res = factory.baseline(self.repo_tree({"README.md": "x"}))
+        self.assertFalse(res["ci-on-pr"][0])
+        self.assertTrue(res["workflow-permissions"][0] and res["workflow-timeouts"][0] and res["actions-pinned"][0])
+
+    def test_a_failed_write_leaves_the_old_ledger_and_no_temp_file(self):
+        path = os.path.join(self.control, "LEDGER.csv")
+        good = [{c: "" for c in factory.LEDGER_COLS} | {"repo": "me/a", "platform": "dir"}]
+        factory.write_csv(path, factory.LEDGER_COLS, good)
+        before = open(path).read()
+        with self.assertRaises(ValueError):  # a row with a column the file does not have
+            factory.write_csv(path, factory.LEDGER_COLS, good + [{"repo": "x", "bogus": "y"}])
+        self.assertEqual(open(path).read(), before)
+        with self.assertRaises(OSError):  # os.replace fails: the temp file is cleaned up
+            factory.write_atomic(os.path.join(self.control, "no", "such", "dir", "f.md"), "x")
+        self.assertEqual(sorted(os.listdir(self.control)), ["LEDGER.csv", "portfolio.json"])
+
+    def test_parallel_done_commands_do_not_lose_each_others_rows(self):
+        ledger, _, _ = factory.plan(self.pf, CATALOG, [], "2026-11-19", self.detect)
+        factory.write_csv(os.path.join(self.control, "LEDGER.csv"), factory.LEDGER_COLS, ledger)
+        script = os.path.join(os.path.dirname(factory.__file__), "factory.py")
+        rows = [(r["repo"], r["platform"]) for r in ledger]
+        procs = [subprocess.Popen([sys.executable, script, "done", self.control, repo, plat, "--status", "skipped",
+                                   "--note", f"{repo}/{plat}"], stdout=subprocess.DEVNULL) for repo, plat in rows * 3]
+        self.assertEqual([p.wait() for p in procs], [0] * len(procs))
+        after = factory.read_csv(os.path.join(self.control, "LEDGER.csv"), factory.LEDGER_COLS)
+        self.assertEqual({(r["repo"], r["platform"]): r["notes"] for r in after},
+                         {(repo, plat): f"{repo}/{plat}" for repo, plat in rows})
+        self.assertTrue(all(r["status"] == "skipped" for r in after))
+
+    def test_commands_on_a_missing_control_folder_say_so(self):
+        script = os.path.join(os.path.dirname(factory.__file__), "factory.py")
+        r = subprocess.run([sys.executable, script, "plan", os.path.join(self.d, "nope")], capture_output=True, text=True)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("run init first", r.stderr)
+        self.assertNotIn("Traceback", r.stderr)
 
     def test_ledger_round_trips(self):
         path = os.path.join(self.control, "LEDGER.csv")

@@ -35,6 +35,8 @@ The **control folder** (`--control`, default `../distribution-hq` beside the rep
 
 **`status`, `next`, `done`**: the loop an agent runs; `RUNBOOK.md` is the contract (what a worker may do, the JSON `next` returns, how to record each outcome). Any agent that runs shell commands can follow it; these three commands are its whole interface.
 
+**`baseline`**: run `python3 scripts/factory.py baseline <control>`. Ten mechanical checks per repo (pinned actions, workflow permissions and timeouts, Dependabot, security policy, tests, CI on pull requests, one version across manifests, license, README); `RUNBOOK.md` lists them. Fix failures on a branch per repo, then re-run.
+
 **`plan`**: run `python3 scripts/factory.py plan <control>`. It scans every enabled repo, adds new eligible rows to `LEDGER.csv` as `planned` (it never changes a row the user or `register` moved on), marks `planned` rows whose asset vanished as `gone`, and writes `QUEUE.md`. Show the user the counts and the top of each batch.
 
 **`run`** (the weekly pass): `plan`, then the worker loop in `RUNBOOK.md` (`next`, do the task, `done`) until `next` is empty; then hand the operator `status` and the `approve` and `human` tasks. For the operator's batches:
