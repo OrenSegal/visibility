@@ -8,6 +8,7 @@ metadata:
     homepage: https://github.com/OrenSegal/visibility
     requires:
       bins: [python3, git]
+model: sonnet
 ---
 
 Treat distribution as a line that runs every week over every repo. This skill needs its siblings (`plan`, `register`, `build`, `monetize`); install the whole plugin.

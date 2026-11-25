@@ -8,6 +8,7 @@ metadata:
     homepage: https://github.com/OrenSegal/visibility
     requires:
       bins: [python3, git]
+model: sonnet
 ---
 
 Produce a visibility plan: where this project can get a dedicated page on a high-authority platform, what each listing needs, and the order to do them. Change nothing outside `.visibility/` in the project. Never create accounts, pay, submit forms or publish here; that is `register`, one platform at a time, with the user.
